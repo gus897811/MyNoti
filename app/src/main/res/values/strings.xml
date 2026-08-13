@@ -54,4 +54,6 @@
     <string name="empty_summary_description">알림이 들어오면 오늘 해야 할 일을 정리해 드려요.</string>
     <string name="empty_urgent_title">급한 일이 없습니다</string>
     <string name="empty_urgent_description">오늘은 여유 있게 알림만 확인해 보세요.</string>
+    <string name="mark_important">중요로 표시</string>
+    <string name="unmark_important">중요 표시 해제</string>
 </resources>

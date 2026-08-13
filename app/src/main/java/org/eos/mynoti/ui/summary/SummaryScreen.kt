@@ -54,8 +54,7 @@ fun SummaryRoute(
     onNotificationClick: (Long) -> Unit,
     viewModel: SummaryViewModel = viewModel(
         factory = SummaryViewModel.factory(
-            summaryRepository = LocalAppContainer.current.summaryRepository,
-            settingsRepository = LocalAppContainer.current.settingsRepository
+            summaryRepository = LocalAppContainer.current.summaryRepository
         )
     )
 ) {
@@ -63,7 +62,7 @@ fun SummaryRoute(
     SummaryScreen(
         uiState = uiState,
         onNotificationClick = onNotificationClick,
-        onRetry = viewModel::refresh
+        onRetry = {}
     )
 }
 

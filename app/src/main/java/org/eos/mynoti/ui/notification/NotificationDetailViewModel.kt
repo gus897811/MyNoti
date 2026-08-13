@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.eos.mynoti.data.repository.NotificationRepository
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.domain.model.Notification
@@ -22,11 +22,11 @@ data class NotificationDetailUiState(
 class NotificationDetailViewModel(
     private val notificationId: Long,
     private val repository: NotificationRepository,
-    private val settingsRepository: SettingsRepository
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<NotificationDetailUiState> = combine(
-        flow { emit(repository.getNotification(notificationId)) },
+        repository.observeNotification(notificationId),
         settingsRepository.settings
     ) { notification, settings ->
         NotificationDetailUiState(
@@ -39,6 +39,13 @@ class NotificationDetailViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = NotificationDetailUiState()
     )
+
+    fun toggleImportant() {
+        val current = uiState.value.notification ?: return
+        viewModelScope.launch {
+            repository.setImportant(current.id, !current.isImportant)
+        }
+    }
 
     companion object {
         fun factory(

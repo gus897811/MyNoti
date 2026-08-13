@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -59,7 +60,8 @@ fun NotificationDetailRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     NotificationDetailScreen(
         uiState = uiState,
-        onBack = onBack
+        onBack = onBack,
+        onToggleImportant = viewModel::toggleImportant
     )
 }
 
@@ -67,6 +69,7 @@ fun NotificationDetailRoute(
 fun NotificationDetailScreen(
     uiState: NotificationDetailUiState,
     onBack: () -> Unit,
+    onToggleImportant: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -97,6 +100,7 @@ fun NotificationDetailScreen(
                 NotificationDetailContent(
                     notification = uiState.notification,
                     isImportant = uiState.isImportant,
+                    onToggleImportant = onToggleImportant,
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
                         .padding(
@@ -113,6 +117,7 @@ fun NotificationDetailScreen(
 private fun NotificationDetailContent(
     notification: Notification,
     isImportant: Boolean,
+    onToggleImportant: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
@@ -138,6 +143,15 @@ private fun NotificationDetailContent(
         if (isImportant) {
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
             ImportanceBadge()
+        }
+        TextButton(onClick = onToggleImportant) {
+            Text(
+                text = if (notification.isImportant) {
+                    stringResource(R.string.unmark_important)
+                } else {
+                    stringResource(R.string.mark_important)
+                }
+            )
         }
         Spacer(modifier = Modifier.height(MyNotiDimens.spaceXl))
 

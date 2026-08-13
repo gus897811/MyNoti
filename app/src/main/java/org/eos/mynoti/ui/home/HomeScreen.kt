@@ -70,7 +70,7 @@ fun HomeRoute(
         onFilterSelected = viewModel::onFilterSelected,
         onNotificationClick = onNotificationClick,
         onSettingsClick = onSettingsClick,
-        onRetry = viewModel::refresh
+        onRetry = {}
     )
 }
 

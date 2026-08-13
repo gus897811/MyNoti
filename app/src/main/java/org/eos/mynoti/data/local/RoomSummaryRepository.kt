@@ -1,4 +1,4 @@
-package org.eos.mynoti.data.mock
+package org.eos.mynoti.data.local
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -9,7 +9,7 @@ import org.eos.mynoti.data.repository.SummaryRepository
 import org.eos.mynoti.domain.model.DailySummary
 import org.eos.mynoti.domain.model.DailySummaryFactory
 
-class MockSummaryRepository(
+class RoomSummaryRepository(
     private val notificationRepository: NotificationRepository,
     private val settingsRepository: SettingsRepository
 ) : SummaryRepository {
