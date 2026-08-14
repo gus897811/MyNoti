@@ -3,6 +3,7 @@
     <string name="app_tagline">Smart notifications, your way.</string>
     <string name="nav_home">홈</string>
     <string name="nav_summary">요약</string>
+    <string name="nav_calendar">캘린더</string>
     <string name="nav_settings">설정</string>
     <string name="cd_settings">설정</string>
     <string name="cd_back">뒤로 가기</string>
@@ -92,4 +93,21 @@
     <string name="delete_notification_title">알림 삭제</string>
     <string name="delete_notification_message">이 알림을 삭제할까요? 예약된 다시 알림도 함께 취소됩니다.</string>
     <string name="delete">삭제</string>
+    <string name="calendar_today">오늘</string>
+    <string name="calendar_previous_month">이전 달</string>
+    <string name="calendar_next_month">다음 달</string>
+    <string name="calendar_add_event">일정 추가</string>
+    <string name="calendar_empty_title">예정된 일정이 없습니다.</string>
+    <string name="calendar_empty_description">이 날짜에 표시할 일정이 없어요.</string>
+    <string name="calendar_received">%1$s 수신</string>
+    <string name="calendar_event_title">일정 제목</string>
+    <string name="calendar_event_title_placeholder">제목을 입력하세요</string>
+    <string name="calendar_event_location">장소 (선택)</string>
+    <string name="calendar_event_location_placeholder">장소를 입력하세요</string>
+    <string name="calendar_event_date">날짜</string>
+    <string name="calendar_event_time">시간</string>
+    <string name="calendar_event_category">카테고리</string>
+    <string name="calendar_event_important">중요</string>
+    <string name="calendar_event_added">일정을 추가했습니다.</string>
+    <string name="cd_calendar_location">장소</string>
 </resources>

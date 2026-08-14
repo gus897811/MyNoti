@@ -18,6 +18,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import org.eos.mynoti.di.AppContainer
 import org.eos.mynoti.di.LocalAppContainer
+import org.eos.mynoti.ui.calendar.CalendarRoute
 import org.eos.mynoti.ui.components.BottomNavigationBar
 import org.eos.mynoti.ui.home.HomeRoute
 import org.eos.mynoti.ui.notification.NotificationDetailRoute
@@ -86,6 +87,22 @@ fun MyNotiNavHost(
                 SummaryRoute(
                     onNotificationClick = { id ->
                         navController.navigate(Routes.notificationDetail(id))
+                    }
+                )
+            }
+            composable(Routes.CALENDAR) {
+                CalendarRoute(
+                    onNotificationClick = { id ->
+                        navController.navigate(Routes.notificationDetail(id))
+                    },
+                    onSettingsClick = {
+                        navController.navigate(Routes.SETTINGS) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 )
             }

@@ -11,9 +11,11 @@ import org.eos.mynoti.data.local.converter.LocalDateTimeConverter
 import org.eos.mynoti.data.local.converter.NotificationTypeConverter
 import org.eos.mynoti.data.local.converter.StringListConverter
 import org.eos.mynoti.data.local.dao.KeywordRuleDao
+import org.eos.mynoti.data.local.dao.ManualCalendarEventDao
 import org.eos.mynoti.data.local.dao.NotificationDao
 import org.eos.mynoti.data.local.dao.ReminderDao
 import org.eos.mynoti.data.local.entity.KeywordRuleEntity
+import org.eos.mynoti.data.local.entity.ManualCalendarEventEntity
 import org.eos.mynoti.data.local.entity.NotificationEntity
 import org.eos.mynoti.data.local.entity.ReminderEntity
 
@@ -21,9 +23,10 @@ import org.eos.mynoti.data.local.entity.ReminderEntity
     entities = [
         NotificationEntity::class,
         KeywordRuleEntity::class,
-        ReminderEntity::class
+        ReminderEntity::class,
+        ManualCalendarEventEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(
@@ -41,6 +44,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun reminderDao(): ReminderDao
 
+    abstract fun manualCalendarEventDao(): ManualCalendarEventDao
+
     companion object {
         private const val DATABASE_NAME = "mynoti.db"
 
@@ -54,7 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                     .also { instance = it }
             }

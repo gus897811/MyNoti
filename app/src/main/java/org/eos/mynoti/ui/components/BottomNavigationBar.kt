@@ -1,9 +1,11 @@
 package org.eos.mynoti.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.PieChart
 import androidx.compose.material.icons.outlined.Settings
@@ -40,6 +42,12 @@ val bottomNavItems = listOf(
         labelRes = R.string.nav_summary,
         selectedIcon = Icons.Filled.PieChart,
         unselectedIcon = Icons.Outlined.PieChart
+    ),
+    BottomNavItem(
+        route = Routes.CALENDAR,
+        labelRes = R.string.nav_calendar,
+        selectedIcon = Icons.Filled.CalendarMonth,
+        unselectedIcon = Icons.Outlined.CalendarMonth
     ),
     BottomNavItem(
         route = Routes.SETTINGS,

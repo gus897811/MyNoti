@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.ChatBubble
 import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.Icon
@@ -65,6 +66,11 @@ fun appIconStyle(appPackageName: String): AppIconStyle {
             background = BankGreen,
             content = Color.White,
             icon = Icons.Outlined.AccountBalance
+        )
+        AppPackages.MANUAL -> AppIconStyle(
+            background = PrimaryBlue,
+            content = Color.White,
+            icon = Icons.Outlined.Event
         )
         else -> AppIconStyle(
             background = PrimaryBlue,
