@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import org.eos.mynoti.data.InstalledAppCatalog
 import org.eos.mynoti.data.NotificationIngest
 import org.eos.mynoti.data.datastore.AppCollectionStore
 import org.eos.mynoti.data.local.AppDatabase
@@ -40,8 +41,10 @@ class AppContainer(context: Context) {
 
     val llmRepository: LlmRepository = DefaultLlmRepository(remoteDataSource)
 
+    val installedAppCatalog = InstalledAppCatalog(context)
+
     val settingsRepository: SettingsRepository = DefaultSettingsRepository(
-        collectionStore = AppCollectionStore(context),
+        collectionStore = AppCollectionStore(context, installedAppCatalog),
         keywordRuleDao = database.keywordRuleDao()
     )
 

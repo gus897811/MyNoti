@@ -62,13 +62,15 @@ class HomeViewModel(
         filter,
         filtersExpanded
     ) { items, settings, currentFilter, expanded ->
+        val validPackages = settings.targetApps.map { it.packageName }.toSet()
+        val prunedFilter = currentFilter.pruneSelectedApps(validPackages)
         val visible = items
             .applyAppSettings(settings)
-            .applyFilter(currentFilter)
+            .applyFilter(prunedFilter)
         HomeUiState(
             visibleNotifications = visible,
             settings = settings,
-            filter = currentFilter,
+            filter = prunedFilter,
             filterApps = settings.targetApps,
             filtersExpanded = expanded,
             isLoading = false,

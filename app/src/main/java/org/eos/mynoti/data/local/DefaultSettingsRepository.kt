@@ -34,6 +34,14 @@ class DefaultSettingsRepository(
         collectionStore.setTargetAppEnabled(packageName, enabled)
     }
 
+    override suspend fun addTargetApp(packageName: String, name: String) {
+        collectionStore.addTargetApp(packageName, name)
+    }
+
+    override suspend fun removeTargetApp(packageName: String) {
+        collectionStore.removeTargetApp(packageName)
+    }
+
     override suspend fun addHighlightKeyword(keyword: String) {
         insertKeyword(keyword, KeywordRuleType.IMPORTANT)
     }

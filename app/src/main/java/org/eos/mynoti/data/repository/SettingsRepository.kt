@@ -7,6 +7,8 @@ interface SettingsRepository {
     val settings: Flow<AppSettings>
 
     suspend fun setTargetAppEnabled(packageName: String, enabled: Boolean)
+    suspend fun addTargetApp(packageName: String, name: String)
+    suspend fun removeTargetApp(packageName: String)
     suspend fun addHighlightKeyword(keyword: String)
     suspend fun removeHighlightKeyword(keyword: String)
     suspend fun addMuteKeyword(keyword: String)

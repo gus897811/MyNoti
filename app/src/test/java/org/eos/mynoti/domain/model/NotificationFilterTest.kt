@@ -120,6 +120,25 @@ class NotificationFilterTest {
     }
 
     @Test
+    fun pruneSelectedAppsDropsPackagesNotInTargetList() {
+        val filter = NotificationFilter(
+            selectedApps = setOf(AppPackages.LEARNING_X, AppPackages.KAKAOTALK),
+            importantOnly = true
+        )
+        val pruned = filter.pruneSelectedApps(setOf(AppPackages.LEARNING_X))
+        assertEquals(setOf(AppPackages.LEARNING_X), pruned.selectedApps)
+        assertTrue(pruned.importantOnly)
+    }
+
+    @Test
+    fun pruneSelectedAppsToEmptyMeansAllApps() {
+        val pruned = NotificationFilter(selectedApps = setOf(AppPackages.KAKAOTALK))
+            .pruneSelectedApps(emptySet())
+        assertTrue(pruned.selectedApps.isEmpty())
+        assertTrue(pruned.isAllApps)
+    }
+
+    @Test
     fun mockDataCoversRequiredCombinations() {
         assertTrue(
             notifications.any {

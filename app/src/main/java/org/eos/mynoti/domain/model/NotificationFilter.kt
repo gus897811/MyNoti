@@ -10,6 +10,10 @@ data class NotificationFilter(
 
     val isAllApps: Boolean
         get() = selectedApps.isEmpty()
+
+    fun pruneSelectedApps(validPackages: Set<String>): NotificationFilter {
+        return copy(selectedApps = selectedApps.intersect(validPackages))
+    }
 }
 
 fun Notification.matches(filter: NotificationFilter): Boolean {
