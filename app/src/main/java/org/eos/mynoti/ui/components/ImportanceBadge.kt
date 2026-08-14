@@ -6,15 +6,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import android.content.res.Configuration
 import org.eos.mynoti.R
 import org.eos.mynoti.ui.theme.ImportantBackground
+import org.eos.mynoti.ui.theme.ImportantBackgroundDark
 import org.eos.mynoti.ui.theme.ImportantAccent
 import org.eos.mynoti.ui.theme.MyNotiBadgeShape
 import org.eos.mynoti.ui.theme.MyNotiDimens
@@ -23,10 +27,15 @@ import org.eos.mynoti.ui.theme.MyNotiTheme
 
 @Composable
 fun ImportanceBadge(modifier: Modifier = Modifier) {
+    val containerColor = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) {
+        ImportantBackgroundDark
+    } else {
+        ImportantBackground
+    }
     Surface(
         modifier = modifier,
         shape = MyNotiBadgeShape,
-        color = ImportantBackground
+        color = containerColor
     ) {
         Row(
             modifier = Modifier.padding(
@@ -53,6 +62,7 @@ fun ImportanceBadge(modifier: Modifier = Modifier) {
 }
 
 @Preview(showBackground = true)
+@Preview(showBackground = true, name = "Importance badge dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ImportanceBadgePreview() {
     MyNotiTheme {

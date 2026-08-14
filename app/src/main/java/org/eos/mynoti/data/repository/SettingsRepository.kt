@@ -2,10 +2,12 @@ package org.eos.mynoti.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import org.eos.mynoti.domain.model.AppSettings
+import org.eos.mynoti.domain.model.ThemePreference
 
 interface SettingsRepository {
     val settings: Flow<AppSettings>
 
+    suspend fun setThemePreference(preference: ThemePreference)
     suspend fun setTargetAppEnabled(packageName: String, enabled: Boolean)
     suspend fun addTargetApp(packageName: String, name: String)
     suspend fun removeTargetApp(packageName: String)

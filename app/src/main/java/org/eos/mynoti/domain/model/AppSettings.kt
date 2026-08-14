@@ -9,7 +9,8 @@ data class TargetApp(
 data class AppSettings(
     val targetApps: List<TargetApp>,
     val highlightKeywords: List<String>,
-    val muteKeywords: List<String>
+    val muteKeywords: List<String>,
+    val themePreference: ThemePreference = ThemePreference.SYSTEM
 ) {
     val enabledPackageNames: Set<String>
         get() = targetApps.filter { it.enabled }.map { it.packageName }.toSet()
@@ -29,7 +30,8 @@ data class AppSettings(
         fun defaults() = AppSettings(
             targetApps = defaultTargetApps,
             highlightKeywords = defaultHighlightKeywords,
-            muteKeywords = defaultMuteKeywords
+            muteKeywords = defaultMuteKeywords,
+            themePreference = ThemePreference.SYSTEM
         )
     }
 }

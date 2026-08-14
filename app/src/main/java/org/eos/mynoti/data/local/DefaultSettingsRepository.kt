@@ -8,6 +8,7 @@ import org.eos.mynoti.data.local.entity.KeywordRuleEntity
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.domain.model.AppSettings
 import org.eos.mynoti.domain.model.KeywordRuleType
+import org.eos.mynoti.domain.model.ThemePreference
 import java.time.LocalDateTime
 
 class DefaultSettingsRepository(
@@ -17,8 +18,9 @@ class DefaultSettingsRepository(
 
     override val settings: Flow<AppSettings> = combine(
         collectionStore.targetApps,
-        keywordRuleDao.observeAll()
-    ) { apps, rules ->
+        keywordRuleDao.observeAll(),
+        collectionStore.themePreference
+    ) { apps, rules, themePreference ->
         AppSettings(
             targetApps = apps,
             highlightKeywords = rules
@@ -26,8 +28,13 @@ class DefaultSettingsRepository(
                 .map { it.keyword },
             muteKeywords = rules
                 .filter { it.ruleType == KeywordRuleType.MUTE }
-                .map { it.keyword }
+                .map { it.keyword },
+            themePreference = themePreference
         )
+    }
+
+    override suspend fun setThemePreference(preference: ThemePreference) {
+        collectionStore.setThemePreference(preference)
     }
 
     override suspend fun setTargetAppEnabled(packageName: String, enabled: Boolean) {

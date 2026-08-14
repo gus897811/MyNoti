@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -31,10 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import android.content.res.Configuration
 import org.eos.mynoti.R
 import org.eos.mynoti.data.mock.MockNotificationData
 import org.eos.mynoti.domain.model.Notification
 import org.eos.mynoti.ui.theme.ImportantCardBackground
+import org.eos.mynoti.ui.theme.ImportantCardBackgroundDark
 import org.eos.mynoti.ui.theme.ImportantAccent
 import org.eos.mynoti.ui.theme.MyNotiCardShape
 import org.eos.mynoti.ui.theme.MyNotiDimens
@@ -55,7 +58,11 @@ fun NotificationCard(
     val isToday = notification.receivedAt.toLocalDate() == LocalDate.now()
     val hasAiSummary = !notification.summary.isNullOrBlank()
     val containerColor = if (isImportant) {
-        ImportantCardBackground
+        if (MaterialTheme.colorScheme.background.luminance() < 0.5f) {
+            ImportantCardBackgroundDark
+        } else {
+            ImportantCardBackground
+        }
     } else {
         MaterialTheme.colorScheme.surface
     }
@@ -165,6 +172,11 @@ fun NotificationCard(
 }
 
 @Preview(showBackground = true, name = "Important card")
+@Preview(
+    showBackground = true,
+    name = "Important card dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
 @Composable
 private fun NotificationCardImportantPreview() {
     MyNotiTheme {

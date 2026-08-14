@@ -19,6 +19,7 @@ import org.eos.mynoti.data.InstalledAppInfo
 import org.eos.mynoti.data.NotificationIngest
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.domain.model.AppSettings
+import org.eos.mynoti.domain.model.ThemePreference
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -59,6 +60,12 @@ class SettingsViewModel(
     fun removeTargetApp(packageName: String) {
         viewModelScope.launch {
             settingsRepository.removeTargetApp(packageName)
+        }
+    }
+
+    fun setThemePreference(preference: ThemePreference) {
+        viewModelScope.launch {
+            settingsRepository.setThemePreference(preference)
         }
     }
 

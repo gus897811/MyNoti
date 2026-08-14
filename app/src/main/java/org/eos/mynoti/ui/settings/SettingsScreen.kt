@@ -26,6 +26,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -43,8 +45,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import android.content.res.Configuration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.eos.mynoti.BuildConfig
@@ -53,6 +58,7 @@ import org.eos.mynoti.data.filterInstalledApps
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.domain.model.AppSettings
 import org.eos.mynoti.domain.model.TargetApp
+import org.eos.mynoti.domain.model.ThemePreference
 import org.eos.mynoti.ui.components.AppIcon
 import org.eos.mynoti.ui.components.KeywordChipGroup
 import org.eos.mynoti.ui.components.SectionHeader
@@ -102,6 +108,7 @@ fun SettingsRoute(
             onTargetAppToggled = viewModel::onTargetAppToggled,
             onAddTargetAppClick = { showPicker = true },
             onRemoveTargetApp = viewModel::removeTargetApp,
+            onThemePreferenceChange = viewModel::setThemePreference,
             onAddHighlightKeyword = viewModel::addHighlightKeyword,
             onRemoveHighlightKeyword = viewModel::removeHighlightKeyword,
             onAddMuteKeyword = viewModel::addMuteKeyword,
@@ -140,6 +147,7 @@ fun SettingsScreen(
     onTargetAppToggled: (String, Boolean) -> Unit,
     onAddTargetAppClick: () -> Unit,
     onRemoveTargetApp: (String) -> Unit,
+    onThemePreferenceChange: (ThemePreference) -> Unit,
     onAddHighlightKeyword: (String) -> Unit,
     onRemoveHighlightKeyword: (String) -> Unit,
     onAddMuteKeyword: (String) -> Unit,
@@ -179,6 +187,42 @@ fun SettingsScreen(
                     vertical = MyNotiDimens.screenVertical
                 )
         ) {
+            SectionHeader(title = stringResource(R.string.appearance))
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+            Text(
+                text = stringResource(R.string.appearance_description),
+                style = MyNotiTextStyles.notificationSummary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MyNotiCardShape,
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column(modifier = Modifier.padding(vertical = MyNotiDimens.spaceXs)) {
+                    ThemePreferenceRow(
+                        label = stringResource(R.string.theme_light),
+                        selected = settings.themePreference == ThemePreference.LIGHT,
+                        contentDescription = stringResource(R.string.cd_theme_light),
+                        onSelect = { onThemePreferenceChange(ThemePreference.LIGHT) }
+                    )
+                    ThemePreferenceRow(
+                        label = stringResource(R.string.theme_dark),
+                        selected = settings.themePreference == ThemePreference.DARK,
+                        contentDescription = stringResource(R.string.cd_theme_dark),
+                        onSelect = { onThemePreferenceChange(ThemePreference.DARK) }
+                    )
+                    ThemePreferenceRow(
+                        label = stringResource(R.string.theme_system),
+                        selected = settings.themePreference == ThemePreference.SYSTEM,
+                        contentDescription = stringResource(R.string.cd_theme_system),
+                        onSelect = { onThemePreferenceChange(ThemePreference.SYSTEM) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
             SectionHeader(title = stringResource(R.string.target_apps))
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
             Text(
@@ -305,6 +349,40 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun ThemePreferenceRow(
+    label: String,
+    selected: Boolean,
+    contentDescription: String,
+    onSelect: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = MyNotiDimens.minTouchTarget)
+            .clickable(onClick = onSelect)
+            .padding(horizontal = MyNotiDimens.cardPadding),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MyNotiTextStyles.notificationTitle,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        RadioButton(
+            selected = selected,
+            onClick = onSelect,
+            modifier = Modifier.semantics { this.contentDescription = contentDescription },
+            colors = RadioButtonDefaults.colors(
+                selectedColor = MaterialTheme.colorScheme.primary
+            )
+        )
+    }
+}
+
+@Composable
 private fun TargetAppRow(
     app: TargetApp,
     onToggle: (Boolean) -> Unit,
@@ -420,6 +498,31 @@ private fun SettingsScreenPreview() {
             onTargetAppToggled = { _, _ -> },
             onAddTargetAppClick = {},
             onRemoveTargetApp = {},
+            onThemePreferenceChange = {},
+            onAddHighlightKeyword = {},
+            onRemoveHighlightKeyword = {},
+            onAddMuteKeyword = {},
+            onRemoveMuteKeyword = {},
+            showDebugActions = true
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Settings dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun SettingsScreenDarkPreview() {
+    MyNotiTheme(darkTheme = true) {
+        SettingsScreen(
+            settings = AppSettings.defaults().copy(themePreference = ThemePreference.DARK),
+            onBack = {},
+            onTargetAppToggled = { _, _ -> },
+            onAddTargetAppClick = {},
+            onRemoveTargetApp = {},
+            onThemePreferenceChange = {},
             onAddHighlightKeyword = {},
             onRemoveHighlightKeyword = {},
             onAddMuteKeyword = {},
