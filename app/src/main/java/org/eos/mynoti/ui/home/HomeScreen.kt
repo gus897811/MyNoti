@@ -55,7 +55,8 @@ fun HomeRoute(
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.factory(
             notificationRepository = LocalAppContainer.current.notificationRepository,
-            settingsRepository = LocalAppContainer.current.settingsRepository
+            settingsRepository = LocalAppContainer.current.settingsRepository,
+            homeFilterController = LocalAppContainer.current.homeFilterController
         )
     )
 ) {

@@ -57,6 +57,9 @@ import java.time.LocalTime
 @Composable
 fun SummaryRoute(
     onNotificationClick: (Long) -> Unit,
+    onImportantClick: () -> Unit,
+    onAssignmentClick: () -> Unit,
+    onUpcomingClick: () -> Unit,
     viewModel: SummaryViewModel = viewModel(
         factory = SummaryViewModel.factory(
             summaryRepository = LocalAppContainer.current.summaryRepository,
@@ -68,6 +71,9 @@ fun SummaryRoute(
     SummaryScreen(
         uiState = uiState,
         onNotificationClick = onNotificationClick,
+        onImportantClick = onImportantClick,
+        onAssignmentClick = onAssignmentClick,
+        onUpcomingClick = onUpcomingClick,
         onRetry = {}
     )
 }
@@ -76,6 +82,9 @@ fun SummaryRoute(
 fun SummaryScreen(
     uiState: SummaryUiState,
     onNotificationClick: (Long) -> Unit,
+    onImportantClick: () -> Unit,
+    onAssignmentClick: () -> Unit,
+    onUpcomingClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -139,21 +148,24 @@ fun SummaryScreen(
                                 icon = Icons.Outlined.Whatshot,
                                 iconTint = ImportantAccent,
                                 label = stringResource(R.string.stat_important),
-                                value = summary.importantCount.toString()
+                                value = summary.importantCount.toString(),
+                                onClick = onImportantClick
                             )
                             SummaryStatCard(
                                 modifier = Modifier.weight(1f),
                                 icon = Icons.AutoMirrored.Outlined.Assignment,
                                 iconTint = TypeAssignment,
                                 label = stringResource(R.string.stat_assignment),
-                                value = summary.assignmentCount.toString()
+                                value = summary.assignmentCount.toString(),
+                                onClick = onAssignmentClick
                             )
                             SummaryStatCard(
                                 modifier = Modifier.weight(1f),
                                 icon = Icons.Outlined.Event,
                                 iconTint = MaterialTheme.colorScheme.primary,
                                 label = stringResource(R.string.stat_upcoming),
-                                value = summary.upcomingEventCount.toString()
+                                value = summary.upcomingEventCount.toString(),
+                                onClick = onUpcomingClick
                             )
                         }
                     }
@@ -216,9 +228,11 @@ private fun SummaryStatCard(
     iconTint: Color,
     label: String,
     value: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier,
         shape = MyNotiCardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -439,6 +453,9 @@ private fun SummaryScreenPreview() {
                 isLoading = false
             ),
             onNotificationClick = {},
+            onImportantClick = {},
+            onAssignmentClick = {},
+            onUpcomingClick = {},
             onRetry = {}
         )
     }
@@ -451,6 +468,9 @@ private fun SummaryLoadingPreview() {
         SummaryScreen(
             uiState = SummaryUiState(isLoading = true),
             onNotificationClick = {},
+            onImportantClick = {},
+            onAssignmentClick = {},
+            onUpcomingClick = {},
             onRetry = {}
         )
     }

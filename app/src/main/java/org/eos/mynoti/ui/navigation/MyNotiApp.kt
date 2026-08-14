@@ -20,6 +20,7 @@ import org.eos.mynoti.di.AppContainer
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.ui.calendar.CalendarRoute
 import org.eos.mynoti.ui.components.BottomNavigationBar
+import org.eos.mynoti.ui.home.HomeFilterPreset
 import org.eos.mynoti.ui.home.HomeRoute
 import org.eos.mynoti.ui.notification.NotificationDetailRoute
 import org.eos.mynoti.ui.settings.SettingsRoute
@@ -50,13 +51,7 @@ fun MyNotiNavHost(
                 BottomNavigationBar(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigateToTopLevel(route)
                     }
                 )
             }
@@ -75,9 +70,21 @@ fun MyNotiNavHost(
                 )
             }
             composable(Routes.SUMMARY) {
+                val homeFilterController = LocalAppContainer.current.homeFilterController
                 SummaryRoute(
                     onNotificationClick = { id ->
                         navController.navigate(Routes.notificationDetail(id))
+                    },
+                    onImportantClick = {
+                        homeFilterController.request(HomeFilterPreset.IMPORTANT)
+                        navController.navigateToTopLevel(Routes.HOME)
+                    },
+                    onAssignmentClick = {
+                        homeFilterController.request(HomeFilterPreset.ASSIGNMENT)
+                        navController.navigateToTopLevel(Routes.HOME)
+                    },
+                    onUpcomingClick = {
+                        navController.navigateToTopLevel(Routes.CALENDAR)
                     }
                 )
             }
@@ -91,13 +98,7 @@ fun MyNotiNavHost(
             composable(Routes.SETTINGS) {
                 SettingsRoute(
                     onBack = {
-                        navController.navigate(Routes.HOME) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                        navController.navigateToTopLevel(Routes.HOME)
                     }
                 )
             }
@@ -117,5 +118,15 @@ fun MyNotiNavHost(
                 )
             }
         }
+    }
+}
+
+private fun NavHostController.navigateToTopLevel(route: String) {
+    navigate(route) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
     }
 }

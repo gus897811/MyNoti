@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.eos.mynoti.data.repository.NotificationRepository
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.domain.model.AppSettings
@@ -37,11 +38,23 @@ data class HomeUiState(
 
 class HomeViewModel(
     notificationRepository: NotificationRepository,
-    settingsRepository: SettingsRepository
+    settingsRepository: SettingsRepository,
+    private val homeFilterController: HomeFilterController = HomeFilterController()
 ) : ViewModel() {
 
     private val filter = MutableStateFlow(NotificationFilter())
     private val filtersExpanded = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            homeFilterController.pending.collect { preset ->
+                if (preset != null) {
+                    applyPreset(preset)
+                    homeFilterController.consume()
+                }
+            }
+        }
+    }
 
     val uiState: StateFlow<HomeUiState> = combine(
         notificationRepository.observeNotifications(),
@@ -112,15 +125,25 @@ class HomeViewModel(
         filtersExpanded.update { !it }
     }
 
+    fun applyPreset(preset: HomeFilterPreset) {
+        filter.value = preset.toFilter()
+        filtersExpanded.value = true
+    }
+
     companion object {
         fun factory(
             notificationRepository: NotificationRepository,
-            settingsRepository: SettingsRepository
+            settingsRepository: SettingsRepository,
+            homeFilterController: HomeFilterController = HomeFilterController()
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return HomeViewModel(notificationRepository, settingsRepository) as T
+                    return HomeViewModel(
+                        notificationRepository,
+                        settingsRepository,
+                        homeFilterController
+                    ) as T
                 }
             }
         }

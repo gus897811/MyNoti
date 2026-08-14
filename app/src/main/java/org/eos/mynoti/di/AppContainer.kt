@@ -27,6 +27,7 @@ import org.eos.mynoti.data.repository.ReminderRepository
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.data.repository.SummaryRepository
 import org.eos.mynoti.data.work.AnalysisScheduler
+import org.eos.mynoti.ui.home.HomeFilterController
 
 class AppContainer(context: Context) {
 
@@ -58,6 +59,8 @@ class AppContainer(context: Context) {
 
     val manualCalendarEventRepository: ManualCalendarEventRepository =
         RoomManualCalendarEventRepository(database.manualCalendarEventDao())
+
+    val homeFilterController = HomeFilterController()
 
     val notificationIngest: NotificationIngest = NotificationIngest(
         context = context.applicationContext,
