@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.eos.mynoti.data.repository.ReminderRepository
 import org.eos.mynoti.data.repository.SummaryRepository
 import org.eos.mynoti.domain.model.DailySummary
@@ -23,7 +24,7 @@ data class SummaryUiState(
 
 class SummaryViewModel(
     summaryRepository: SummaryRepository,
-    reminderRepository: ReminderRepository
+    private val reminderRepository: ReminderRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<SummaryUiState> = combine(
@@ -49,6 +50,12 @@ class SummaryViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = SummaryUiState()
         )
+
+    fun deleteReminder(id: Long) {
+        viewModelScope.launch {
+            reminderRepository.cancel(id)
+        }
+    }
 
     companion object {
         fun factory(

@@ -80,13 +80,17 @@ fun ReminderSection(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        if (!reminder.isFired) {
-                            IconButton(onClick = { onCancelReminder(reminder.id) }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Close,
-                                    contentDescription = stringResource(R.string.cd_cancel_reminder)
+                        IconButton(onClick = { onCancelReminder(reminder.id) }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(
+                                    if (reminder.isFired) {
+                                        R.string.cd_delete_reminder
+                                    } else {
+                                        R.string.cd_cancel_reminder
+                                    }
                                 )
-                            }
+                            )
                         }
                     }
                 }

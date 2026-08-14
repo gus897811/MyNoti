@@ -41,6 +41,7 @@
     <string name="reminder_pick_time">시간 선택</string>
     <string name="reminder_scheduled">다시 알림이 예약되었습니다.</string>
     <string name="cd_cancel_reminder">다시 알림 취소</string>
+    <string name="cd_delete_reminder">다시 알림 삭제</string>
     <string name="reminder_channel_name">다시 알림</string>
     <string name="reminder_channel_description">예약한 시간에 알림을 다시 보여줍니다.</string>
     <string name="summary_reminders">시한별 다시 알림</string>

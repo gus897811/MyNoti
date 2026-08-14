@@ -15,11 +15,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Whatshot
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -74,6 +76,7 @@ fun SummaryRoute(
         onImportantClick = onImportantClick,
         onAssignmentClick = onAssignmentClick,
         onUpcomingClick = onUpcomingClick,
+        onDeleteReminder = viewModel::deleteReminder,
         onRetry = {}
     )
 }
@@ -85,6 +88,7 @@ fun SummaryScreen(
     onImportantClick: () -> Unit,
     onAssignmentClick: () -> Unit,
     onUpcomingClick: () -> Unit,
+    onDeleteReminder: (Long) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -211,7 +215,8 @@ fun SummaryScreen(
                             item(key = "reminder-group-${group.remindAt}") {
                                 ReminderTimeGroupCard(
                                     group = group,
-                                    onNotificationClick = onNotificationClick
+                                    onNotificationClick = onNotificationClick,
+                                    onDeleteReminder = onDeleteReminder
                                 )
                             }
                         }
@@ -330,7 +335,8 @@ private fun AiInsightCard(insight: String?) {
 @Composable
 private fun ReminderTimeGroupCard(
     group: ReminderTimeGroup,
-    onNotificationClick: (Long) -> Unit
+    onNotificationClick: (Long) -> Unit,
+    onDeleteReminder: (Long) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -351,7 +357,8 @@ private fun ReminderTimeGroupCard(
                 }
                 ReminderItemRow(
                     item = item,
-                    onClick = { onNotificationClick(item.notificationId) }
+                    onClick = { onNotificationClick(item.notificationId) },
+                    onDelete = { onDeleteReminder(item.id) }
                 )
             }
         }
@@ -361,7 +368,8 @@ private fun ReminderTimeGroupCard(
 @Composable
 private fun ReminderItemRow(
     item: ReminderItem,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         onClick = onClick,
@@ -372,24 +380,46 @@ private fun ReminderItemRow(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(MyNotiDimens.spaceMd)) {
-            Text(
-                text = item.title,
-                style = MyNotiTextStyles.notificationTitle,
-                color = if (item.isFired) {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
-                textDecoration = if (item.isFired) TextDecoration.LineThrough else null
-            )
-            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
-            Text(
-                text = item.appName,
-                style = MyNotiTextStyles.caption,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textDecoration = if (item.isFired) TextDecoration.LineThrough else null
-            )
+        Row(
+            modifier = Modifier.padding(start = MyNotiDimens.spaceMd),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = MyNotiDimens.spaceMd)
+            ) {
+                Text(
+                    text = item.title,
+                    style = MyNotiTextStyles.notificationTitle,
+                    color = if (item.isFired) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    textDecoration = if (item.isFired) TextDecoration.LineThrough else null
+                )
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+                Text(
+                    text = item.appName,
+                    style = MyNotiTextStyles.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textDecoration = if (item.isFired) TextDecoration.LineThrough else null
+                )
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = stringResource(
+                        if (item.isFired) {
+                            R.string.cd_delete_reminder
+                        } else {
+                            R.string.cd_cancel_reminder
+                        }
+                    ),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -456,6 +486,7 @@ private fun SummaryScreenPreview() {
             onImportantClick = {},
             onAssignmentClick = {},
             onUpcomingClick = {},
+            onDeleteReminder = {},
             onRetry = {}
         )
     }
@@ -471,6 +502,7 @@ private fun SummaryLoadingPreview() {
             onImportantClick = {},
             onAssignmentClick = {},
             onUpcomingClick = {},
+            onDeleteReminder = {},
             onRetry = {}
         )
     }
