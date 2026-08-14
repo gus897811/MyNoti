@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.eos.mynoti.R
 import org.eos.mynoti.data.mock.MockNotificationData
 import org.eos.mynoti.domain.model.Notification
 import org.eos.mynoti.ui.theme.ImportantCardBackground
@@ -130,7 +132,11 @@ fun NotificationCard(
                     )
                     Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
                     Text(
-                        text = notification.previewText(),
+                        text = if (notification.isAnalysisPending) {
+                            stringResource(R.string.analysis_pending)
+                        } else {
+                            notification.previewText()
+                        },
                         style = MyNotiTextStyles.notificationSummary.copy(
                             fontWeight = if (hasAiSummary) FontWeight.Medium else FontWeight.Normal
                         ),

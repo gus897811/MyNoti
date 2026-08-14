@@ -3,15 +3,20 @@ package org.eos.mynoti.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.eos.mynoti.data.NotificationIngest
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.domain.model.AppSettings
 
 class SettingsViewModel(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val notificationIngest: NotificationIngest? = null
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings.stateIn(
@@ -19,6 +24,9 @@ class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = AppSettings.defaults()
     )
+
+    private val _messages = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val messages: SharedFlow<Int> = _messages.asSharedFlow()
 
     fun onTargetAppToggled(packageName: String, enabled: Boolean) {
         viewModelScope.launch {
@@ -50,12 +58,23 @@ class SettingsViewModel(
         }
     }
 
+    fun addLearningXSample() {
+        val ingest = notificationIngest ?: return
+        viewModelScope.launch {
+            ingest.insertLearningXSample()
+            _messages.tryEmit(org.eos.mynoti.R.string.debug_sample_added)
+        }
+    }
+
     companion object {
-        fun factory(settingsRepository: SettingsRepository): ViewModelProvider.Factory {
+        fun factory(
+            settingsRepository: SettingsRepository,
+            notificationIngest: NotificationIngest? = null
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SettingsViewModel(settingsRepository) as T
+                    return SettingsViewModel(settingsRepository, notificationIngest) as T
                 }
             }
         }

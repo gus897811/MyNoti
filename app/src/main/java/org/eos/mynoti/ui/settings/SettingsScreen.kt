@@ -1,5 +1,8 @@
 package org.eos.mynoti.ui.settings
 
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,26 +15,33 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.eos.mynoti.BuildConfig
 import org.eos.mynoti.R
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.domain.model.AppSettings
@@ -50,19 +60,42 @@ private enum class KeywordDialogType { HIGHLIGHT, MUTE }
 fun SettingsRoute(
     onBack: () -> Unit,
     viewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.factory(LocalAppContainer.current.settingsRepository)
+        factory = SettingsViewModel.factory(
+            settingsRepository = LocalAppContainer.current.settingsRepository,
+            notificationIngest = LocalAppContainer.current.notificationIngest
+        )
     )
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    SettingsScreen(
-        settings = settings,
-        onBack = onBack,
-        onTargetAppToggled = viewModel::onTargetAppToggled,
-        onAddHighlightKeyword = viewModel::addHighlightKeyword,
-        onRemoveHighlightKeyword = viewModel::removeHighlightKeyword,
-        onAddMuteKeyword = viewModel::addMuteKeyword,
-        onRemoveMuteKeyword = viewModel::removeMuteKeyword
-    )
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        SettingsScreen(
+            settings = settings,
+            onBack = onBack,
+            onTargetAppToggled = viewModel::onTargetAppToggled,
+            onAddHighlightKeyword = viewModel::addHighlightKeyword,
+            onRemoveHighlightKeyword = viewModel::removeHighlightKeyword,
+            onAddMuteKeyword = viewModel::addMuteKeyword,
+            onRemoveMuteKeyword = viewModel::removeMuteKeyword,
+            onOpenNotificationAccess = {
+                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            },
+            onAddSampleNotification = viewModel::addLearningXSample,
+            showDebugActions = BuildConfig.DEBUG
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
 }
 
 @Composable
@@ -74,6 +107,9 @@ fun SettingsScreen(
     onRemoveHighlightKeyword: (String) -> Unit,
     onAddMuteKeyword: (String) -> Unit,
     onRemoveMuteKeyword: (String) -> Unit,
+    onOpenNotificationAccess: () -> Unit = {},
+    onAddSampleNotification: () -> Unit = {},
+    showDebugActions: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var dialogType by remember { mutableStateOf<KeywordDialogType?>(null) }
@@ -130,6 +166,22 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
+            SectionHeader(title = stringResource(R.string.notification_access))
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+            Text(
+                text = stringResource(R.string.notification_access_description),
+                style = MyNotiTextStyles.notificationSummary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
+            OutlinedButton(
+                onClick = onOpenNotificationAccess,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.notification_access_open))
+            }
+
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
             SectionHeader(title = stringResource(R.string.highlight_keywords))
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
             Text(
@@ -160,6 +212,24 @@ fun SettingsScreen(
                 onRemove = onRemoveMuteKeyword,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (showDebugActions) {
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
+                SectionHeader(title = stringResource(R.string.debug_section))
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+                Text(
+                    text = stringResource(R.string.debug_add_sample_description),
+                    style = MyNotiTextStyles.notificationSummary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
+                Button(
+                    onClick = onAddSampleNotification,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.debug_add_sample))
+                }
+            }
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
         }
     }
@@ -267,7 +337,8 @@ private fun SettingsScreenPreview() {
             onAddHighlightKeyword = {},
             onRemoveHighlightKeyword = {},
             onAddMuteKeyword = {},
-            onRemoveMuteKeyword = {}
+            onRemoveMuteKeyword = {},
+            showDebugActions = true
         )
     }
 }

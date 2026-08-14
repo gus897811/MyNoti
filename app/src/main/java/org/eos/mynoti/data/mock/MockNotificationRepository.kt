@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import org.eos.mynoti.data.repository.NotificationRepository
+import org.eos.mynoti.domain.model.AnalysisStatus
 import org.eos.mynoti.domain.model.Notification
+import org.eos.mynoti.domain.model.NotificationAnalysis
 import java.time.LocalDateTime
 
 class MockNotificationRepository(
@@ -80,6 +82,60 @@ class MockNotificationRepository(
         notifications.update { current ->
             current.map {
                 if (it.id == id) it.copy(remindAt = remindAt, isReminded = false) else it
+            }
+        }
+    }
+
+    override suspend fun getPendingAnalysis(limit: Int): List<Notification> {
+        return notifications.value
+            .filter {
+                it.analysisStatus == AnalysisStatus.PENDING ||
+                    it.analysisStatus == AnalysisStatus.FAILED
+            }
+            .sortedBy { it.receivedAt }
+            .take(limit)
+    }
+
+    override suspend fun markAnalysisStatus(id: Long, status: AnalysisStatus) {
+        notifications.update { current ->
+            current.map { if (it.id == id) it.copy(analysisStatus = status) else it }
+        }
+    }
+
+    override suspend fun resetStuckAnalysis() {
+        notifications.update { current ->
+            current.map {
+                if (it.analysisStatus == AnalysisStatus.IN_PROGRESS) {
+                    it.copy(analysisStatus = AnalysisStatus.PENDING)
+                } else {
+                    it
+                }
+            }
+        }
+    }
+
+    override suspend fun applyAnalysis(analysis: NotificationAnalysis) {
+        notifications.update { current ->
+            current.map { notification ->
+                if (notification.id != analysis.localId) {
+                    notification
+                } else {
+                    notification.copy(
+                        summary = analysis.summary,
+                        isImportant = analysis.isImportant,
+                        type = analysis.type,
+                        actionRequired = analysis.actionRequired,
+                        remindAt = analysis.deadline ?: notification.remindAt,
+                        isReminded = if (analysis.deadline != null) false else notification.isReminded,
+                        actions = analysis.actions.mapIndexed { index, title ->
+                            org.eos.mynoti.domain.model.NotificationAction(
+                                id = index.toLong(),
+                                title = title
+                            )
+                        },
+                        analysisStatus = AnalysisStatus.COMPLETED
+                    )
+                }
             }
         }
     }

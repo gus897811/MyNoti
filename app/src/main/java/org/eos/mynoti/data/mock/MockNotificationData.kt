@@ -1,5 +1,6 @@
 package org.eos.mynoti.data.mock
 
+import org.eos.mynoti.domain.model.AnalysisStatus
 import org.eos.mynoti.domain.model.AppPackages
 import org.eos.mynoti.domain.model.Notification
 import org.eos.mynoti.domain.model.NotificationAction
@@ -207,7 +208,7 @@ object MockNotificationData {
             remindAt = null,
             isReminded = true
         )
-    )
+    ).map { it.copy(analysisStatus = AnalysisStatus.COMPLETED) }
 
     private fun yesterday(now: LocalDateTime): LocalDateTime = now.minusDays(1)
 }

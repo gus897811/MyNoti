@@ -2,6 +2,7 @@ package org.eos.mynoti.data.local.mapper
 
 import org.eos.mynoti.data.local.entity.NotificationEntity
 import org.eos.mynoti.domain.model.Notification
+import org.eos.mynoti.domain.model.NotificationAction
 
 fun NotificationEntity.toDomain(): Notification {
     return Notification(
@@ -10,18 +11,21 @@ fun NotificationEntity.toDomain(): Notification {
         appPackageName = appPackageName,
         title = title.orEmpty(),
         content = content.orEmpty(),
-        // summary/actions는 LLM 분석 컬럼이 확정되면 migration으로 추가한다.
-        summary = null,
+        summary = summary,
         receivedAt = receivedAt,
         isImportant = isImportant,
         type = type,
         remindAt = remindAt,
         isReminded = isReminded,
-        actions = emptyList()
+        actions = actions.mapIndexed { index, title ->
+            NotificationAction(id = index.toLong(), title = title)
+        },
+        actionRequired = actionRequired,
+        analysisStatus = analysisStatus
     )
 }
 
-fun Notification.toEntity(): NotificationEntity {
+fun Notification.toEntity(createdAt: java.time.LocalDateTime = receivedAt): NotificationEntity {
     return NotificationEntity(
         notificationId = id,
         appName = appName,
@@ -31,8 +35,12 @@ fun Notification.toEntity(): NotificationEntity {
         receivedAt = receivedAt,
         isImportant = isImportant,
         type = type,
-        createdAt = receivedAt,
+        createdAt = createdAt,
         remindAt = remindAt,
-        isReminded = isReminded
+        isReminded = isReminded,
+        summary = summary,
+        actionRequired = actionRequired,
+        analysisStatus = analysisStatus,
+        actions = actions.map { it.title }
     )
 }

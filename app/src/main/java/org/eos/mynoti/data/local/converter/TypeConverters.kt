@@ -1,8 +1,10 @@
 package org.eos.mynoti.data.local.converter
 
 import androidx.room.TypeConverter
+import org.eos.mynoti.domain.model.AnalysisStatus
 import org.eos.mynoti.domain.model.KeywordRuleType
 import org.eos.mynoti.domain.model.NotificationType
+import org.json.JSONArray
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -40,5 +42,30 @@ class KeywordRuleTypeConverter {
     fun fromName(value: String?): KeywordRuleType {
         return value?.let { runCatching { KeywordRuleType.valueOf(it) }.getOrNull() }
             ?: KeywordRuleType.IMPORTANT
+    }
+}
+
+class AnalysisStatusConverter {
+    @TypeConverter
+    fun toName(value: AnalysisStatus?): String? = value?.name
+
+    @TypeConverter
+    fun fromName(value: String?): AnalysisStatus {
+        return value?.let { runCatching { AnalysisStatus.valueOf(it) }.getOrNull() }
+            ?: AnalysisStatus.PENDING
+    }
+}
+
+class StringListConverter {
+    @TypeConverter
+    fun fromList(value: List<String>?): String {
+        return JSONArray(value ?: emptyList<String>()).toString()
+    }
+
+    @TypeConverter
+    fun toList(value: String?): List<String> {
+        if (value.isNullOrBlank()) return emptyList()
+        val array = JSONArray(value)
+        return (0 until array.length()).map { index -> array.getString(index) }
     }
 }

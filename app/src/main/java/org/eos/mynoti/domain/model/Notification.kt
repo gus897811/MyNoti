@@ -14,7 +14,12 @@ data class Notification(
     val type: NotificationType,
     val remindAt: LocalDateTime?,
     val isReminded: Boolean,
-    val actions: List<NotificationAction> = emptyList()
+    val actions: List<NotificationAction> = emptyList(),
+    val actionRequired: Boolean = false,
+    val analysisStatus: AnalysisStatus = AnalysisStatus.PENDING
 ) {
+    val isAnalysisPending: Boolean
+        get() = analysisStatus != AnalysisStatus.COMPLETED
+
     fun displaySummary(): String = summary?.takeIf { it.isNotBlank() } ?: content
 }

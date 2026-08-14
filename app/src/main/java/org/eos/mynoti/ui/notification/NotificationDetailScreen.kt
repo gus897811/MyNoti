@@ -160,7 +160,11 @@ private fun NotificationDetailContent(
             emphasized = true
         ) {
             Text(
-                text = notification.summary ?: stringResource(R.string.no_summary),
+                text = when {
+                    notification.isAnalysisPending -> stringResource(R.string.analysis_pending)
+                    !notification.summary.isNullOrBlank() -> notification.summary
+                    else -> stringResource(R.string.no_summary)
+                },
                 style = MyNotiTextStyles.notificationTitle,
                 color = MaterialTheme.colorScheme.onSurface
             )

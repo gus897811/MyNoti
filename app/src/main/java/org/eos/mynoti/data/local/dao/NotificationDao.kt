@@ -8,6 +8,8 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import org.eos.mynoti.data.local.entity.NotificationEntity
+import org.eos.mynoti.domain.model.AnalysisStatus
+import org.eos.mynoti.domain.model.NotificationType
 import java.time.LocalDateTime
 
 @Dao
@@ -97,4 +99,58 @@ interface NotificationDao {
 
     @Query("SELECT COUNT(*) FROM notification")
     suspend fun count(): Int
+
+    @Query(
+        """
+        SELECT * FROM notification
+        WHERE analysis_status IN ('PENDING', 'FAILED')
+        ORDER BY received_at ASC
+        LIMIT :limit
+        """
+    )
+    suspend fun getPendingAnalysis(limit: Int): List<NotificationEntity>
+
+    @Query(
+        """
+        UPDATE notification
+        SET analysis_status = :status
+        WHERE notification_id = :id
+        """
+    )
+    suspend fun updateAnalysisStatus(id: Long, status: AnalysisStatus)
+
+    @Query(
+        """
+        UPDATE notification
+        SET analysis_status = 'PENDING'
+        WHERE analysis_status = 'IN_PROGRESS'
+        """
+    )
+    suspend fun resetStuckAnalysis()
+
+    @Query(
+        """
+        UPDATE notification
+        SET summary = :summary,
+            is_important = :isImportant,
+            type = :type,
+            action_required = :actionRequired,
+            remind_at = :remindAt,
+            is_reminded = :isReminded,
+            actions_json = :actionsJson,
+            analysis_status = :status
+        WHERE notification_id = :id
+        """
+    )
+    suspend fun applyAnalysis(
+        id: Long,
+        summary: String,
+        isImportant: Boolean,
+        type: NotificationType,
+        actionRequired: Boolean,
+        remindAt: LocalDateTime?,
+        isReminded: Boolean,
+        actionsJson: String,
+        status: AnalysisStatus
+    )
 }

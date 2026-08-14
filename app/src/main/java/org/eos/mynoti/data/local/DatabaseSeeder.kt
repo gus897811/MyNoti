@@ -1,6 +1,7 @@
 package org.eos.mynoti.data.local
 
 import org.eos.mynoti.BuildConfig
+import org.eos.mynoti.data.NotificationIngest
 import org.eos.mynoti.data.local.dao.KeywordRuleDao
 import org.eos.mynoti.data.local.dao.NotificationDao
 import org.eos.mynoti.data.local.entity.KeywordRuleEntity
@@ -20,6 +21,8 @@ object DatabaseSeeder {
             notificationDao.insertAll(
                 MockNotificationData.create().map { it.toEntity() }
             )
+            // README curl 예시와 동일한 미분석 LearningX 알림 → Worker가 Backend로 보낸다.
+            notificationDao.insert(NotificationIngest.learningXSample().toEntity())
         }
         if (keywordRuleDao.count() == 0) {
             val now = LocalDateTime.now()

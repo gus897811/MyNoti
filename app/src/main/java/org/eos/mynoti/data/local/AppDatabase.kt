@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import org.eos.mynoti.data.local.converter.AnalysisStatusConverter
 import org.eos.mynoti.data.local.converter.KeywordRuleTypeConverter
 import org.eos.mynoti.data.local.converter.LocalDateTimeConverter
 import org.eos.mynoti.data.local.converter.NotificationTypeConverter
+import org.eos.mynoti.data.local.converter.StringListConverter
 import org.eos.mynoti.data.local.dao.KeywordRuleDao
 import org.eos.mynoti.data.local.dao.NotificationDao
 import org.eos.mynoti.data.local.entity.KeywordRuleEntity
@@ -18,13 +20,15 @@ import org.eos.mynoti.data.local.entity.NotificationEntity
         NotificationEntity::class,
         KeywordRuleEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(
     LocalDateTimeConverter::class,
     NotificationTypeConverter::class,
-    KeywordRuleTypeConverter::class
+    KeywordRuleTypeConverter::class,
+    AnalysisStatusConverter::class,
+    StringListConverter::class
 )
 abstract class AppDatabase : RoomDatabase() {
 
@@ -44,7 +48,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     DATABASE_NAME
-                ).build().also { instance = it }
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
+                    .also { instance = it }
             }
         }
     }

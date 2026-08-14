@@ -22,6 +22,14 @@
     <string name="remind_later">나중에 다시 알림</string>
     <string name="importance">중요</string>
     <string name="no_summary">아직 생성된 요약이 없습니다.</string>
+    <string name="analysis_pending">AI 분석 대기 중</string>
+    <string name="notification_access">알림 접근 권한</string>
+    <string name="notification_access_description">다른 앱 알림을 수집하려면 알림 접근을 허용하세요. 분석 요청은 WorkManager가 백엔드로 보냅니다.</string>
+    <string name="notification_access_open">권한 설정 열기</string>
+    <string name="debug_section">개발</string>
+    <string name="debug_add_sample">LearningX 샘플 알림 추가</string>
+    <string name="debug_add_sample_description">미분석 알림을 Room에 넣고 Worker가 Backend로 분석을 요청합니다.</string>
+    <string name="debug_sample_added">샘플 알림을 추가했습니다.</string>
     <string name="notification_not_found_title">알림을 찾을 수 없습니다</string>
     <string name="notification_not_found_description">요청한 알림이 목록에 없어요.</string>
     <string name="loading_ai">AI가 알림을 분석하고 있습니다...</string>
