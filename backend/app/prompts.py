@@ -104,6 +104,19 @@ KAKAOTALK_ADDON = """
 - 일상적인 잡담, 이모티콘 위주 메시지는 isImportant를 false로 판단하세요.
 """
 
+INSTAGRAM_ADDON = """
+## 앱 특이사항: Instagram DM (메신저)
+이 알림은 인스타그램 다이렉트 메시지입니다. 발신자(아이디 또는 이름)와 대화의 핵심 맥락을 요약하세요.
+- 메신저로 왔다고 해서 무조건 COMMUNICATION이 아닙니다. 위 "분류 우선순위"를 그대로 적용하세요.
+  특히 정산·더치페이·송금 요청처럼 금액이 언급된 메시지는 FINANCIAL로 분류해야 합니다.
+- 약속, 모임 시간, 팀플 회의 일정처럼 답장/참석이 필요한 내용이면 actionRequired를 true로,
+  약속 시각을 deadline으로 추출하세요.
+- 게시물/스토리 공유, 이모티콘·짧은 리액션 위주 메시지, 단순 소통용 메시지는 isImportant를
+  false로 판단하세요.
+- 본문이 "사진을 보냈습니다", "스토리를 공유했습니다"처럼 실제 텍스트 내용이 없다면 요약은
+  발신자와 공유된 콘텐츠 종류만 간단히 언급하세요.
+"""
+
 FINANCIAL_ADDON = """
 ## 앱 특이사항: 금융 앱 (카드/은행/페이)
 이 앱에서 오는 알림은 대부분 결제/입출금이지만, 이벤트나 광고성 알림도 섞여 있을 수 있습니다.
@@ -126,6 +139,7 @@ _PACKAGE_KEYWORD_MAP = [
     (("learningx", "lms"), LEARNINGX_ADDON),
     (("heyyoung", "hyu"), HEYYOUNG_ADDON),
     (("kakao",), KAKAOTALK_ADDON),
+    (("instagram",), INSTAGRAM_ADDON),
     (
         ("bank", "card", "toss", "pay", "kbstar", "shinhan", "woori", "nhbank"),
         FINANCIAL_ADDON,
