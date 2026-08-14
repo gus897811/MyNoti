@@ -1,6 +1,5 @@
 package org.eos.mynoti.ui.calendar
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,11 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,14 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import org.eos.mynoti.R
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.domain.model.AppPackages
@@ -62,6 +61,7 @@ fun CalendarRoute(
         onSelectDate = viewModel::selectDate,
         onPreviousMonth = viewModel::goToPreviousMonth,
         onNextMonth = viewModel::goToNextMonth,
+        onSelectMonth = viewModel::selectMonth,
         onToday = viewModel::goToToday,
         onEventClick = { event ->
             event.notificationId?.let(onNotificationClick)
@@ -76,85 +76,106 @@ fun CalendarScreen(
     onSelectDate: (LocalDate) -> Unit,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit,
+    onSelectMonth: (YearMonth) -> Unit,
     onToday: () -> Unit,
     onEventClick: (CalendarEvent) -> Unit,
     onAddEvent: (String, String?, LocalDateTime, NotificationType, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
+    var showMonthPicker by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            CalendarScreenHeader()
-            CalendarMonthHeader(
-                month = uiState.currentMonth,
-                onPrevious = onPreviousMonth,
-                onNext = onNextMonth,
-                onToday = onToday,
-                modifier = Modifier.padding(horizontal = MyNotiDimens.spaceSm)
-            )
-            CalendarWeekdayHeader(
-                modifier = Modifier.padding(
-                    horizontal = MyNotiDimens.screenHorizontal,
-                    vertical = MyNotiDimens.spaceSm
-                )
-            )
-            CalendarMonthGrid(
-                month = uiState.currentMonth,
-                selectedDate = uiState.selectedDate,
-                today = uiState.today,
-                typesByDate = uiState::typesOn,
-                onSelectDate = onSelectDate,
-                modifier = Modifier.padding(horizontal = MyNotiDimens.screenHorizontal)
-            )
-            Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
-            CalendarSelectedDateTitle(
-                date = uiState.selectedDate,
-                modifier = Modifier.padding(horizontal = MyNotiDimens.screenHorizontal)
-            )
-            Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
-            if (uiState.selectedEvents.isEmpty()) {
-                EmptyState(
-                    title = stringResource(R.string.calendar_empty_title),
-                    description = stringResource(R.string.calendar_empty_description),
-                    icon = Icons.Outlined.EventBusy,
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        start = MyNotiDimens.screenHorizontal,
-                        end = MyNotiDimens.screenHorizontal,
-                        bottom = 88.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(MyNotiDimens.itemSpacing)
+    fun expandCalendar() {
+        scope.launch { listState.animateScrollToItem(0) }
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        CalendarScreenHeader(onAddEvent = { showAddSheet = true })
+        CalendarMonthHeader(
+            month = uiState.currentMonth,
+            onPrevious = {
+                onPreviousMonth()
+                expandCalendar()
+            },
+            onNext = {
+                onNextMonth()
+                expandCalendar()
+            },
+            onMonthClick = { showMonthPicker = true },
+            onToday = {
+                onToday()
+                expandCalendar()
+            },
+            modifier = Modifier.padding(horizontal = MyNotiDimens.spaceSm)
+        )
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = MyNotiDimens.spaceXxl)
+        ) {
+            item(key = "calendar-grid") {
+                Column(
+                    modifier = Modifier.padding(horizontal = MyNotiDimens.screenHorizontal)
                 ) {
-                    items(uiState.selectedEvents, key = { it.listKey }) { event ->
-                        CalendarEventCard(
-                            event = event,
-                            onClick = { onEventClick(event) }
+                    CalendarWeekdayHeader(
+                        modifier = Modifier.padding(vertical = MyNotiDimens.spaceSm)
+                    )
+                    CalendarMonthGrid(
+                        month = uiState.currentMonth,
+                        selectedDate = uiState.selectedDate,
+                        today = uiState.today,
+                        typesByDate = uiState::typesOn,
+                        onSelectDate = onSelectDate
+                    )
+                }
+            }
+            item(key = "selected-date") {
+                CalendarSelectedDateTitle(
+                    date = uiState.selectedDate,
+                    modifier = Modifier.padding(
+                        horizontal = MyNotiDimens.screenHorizontal,
+                        vertical = MyNotiDimens.spaceSm
+                    )
+                )
+            }
+            if (uiState.selectedEvents.isEmpty()) {
+                item(key = "empty") {
+                    EmptyState(
+                        title = stringResource(R.string.calendar_empty_title),
+                        description = stringResource(R.string.calendar_empty_description),
+                        icon = Icons.Outlined.EventBusy
+                    )
+                }
+            } else {
+                items(
+                    items = uiState.selectedEvents,
+                    key = { it.listKey }
+                ) { event ->
+                    CalendarEventCard(
+                        event = event,
+                        onClick = { onEventClick(event) },
+                        modifier = Modifier.padding(
+                            horizontal = MyNotiDimens.screenHorizontal,
+                            vertical = MyNotiDimens.itemSpacing / 2
                         )
-                    }
+                    )
                 }
             }
         }
-        FloatingActionButton(
-            onClick = { showAddSheet = true },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    end = MyNotiDimens.screenHorizontal,
-                    bottom = MyNotiDimens.spaceXl
-                ),
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = stringResource(R.string.calendar_add_event)
-            )
-        }
+    }
+
+    if (showMonthPicker) {
+        MonthYearPickerDialog(
+            currentMonth = uiState.currentMonth,
+            onConfirm = { month ->
+                onSelectMonth(month)
+                showMonthPicker = false
+                expandCalendar()
+            },
+            onDismiss = { showMonthPicker = false }
+        )
     }
 
     if (showAddSheet) {
@@ -170,7 +191,7 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun CalendarScreenHeader() {
+private fun CalendarScreenHeader(onAddEvent: () -> Unit) {
     Column(
         modifier = Modifier.padding(
             start = MyNotiDimens.spaceSm,
@@ -197,11 +218,18 @@ private fun CalendarScreenHeader() {
             Spacer(modifier = Modifier.weight(1f))
         }
         Column(modifier = Modifier.padding(horizontal = MyNotiDimens.spaceMd)) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MyNotiTextStyles.appTitle,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MyNotiTextStyles.appTitle,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
+                )
+                CalendarAddEventButton(onClick = onAddEvent)
+            }
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
             Text(
                 text = stringResource(R.string.app_tagline),
@@ -229,6 +257,7 @@ private fun CalendarScreenPreview() {
             onSelectDate = {},
             onPreviousMonth = {},
             onNextMonth = {},
+            onSelectMonth = {},
             onToday = {},
             onEventClick = {},
             onAddEvent = { _, _, _, _, _ -> }
@@ -252,6 +281,7 @@ private fun CalendarScreenEmptyPreview() {
             onSelectDate = {},
             onPreviousMonth = {},
             onNextMonth = {},
+            onSelectMonth = {},
             onToday = {},
             onEventClick = {},
             onAddEvent = { _, _, _, _, _ -> }

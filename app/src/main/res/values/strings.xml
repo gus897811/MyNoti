@@ -94,8 +94,15 @@
     <string name="delete_notification_message">이 알림을 삭제할까요? 예약된 다시 알림도 함께 취소됩니다.</string>
     <string name="delete">삭제</string>
     <string name="calendar_today">오늘</string>
+    <string name="calendar_today_go">오늘로 이동</string>
+    <string name="calendar_day_selected">선택됨</string>
     <string name="calendar_previous_month">이전 달</string>
     <string name="calendar_next_month">다음 달</string>
+    <string name="calendar_previous_year">이전 해</string>
+    <string name="calendar_next_year">다음 해</string>
+    <string name="calendar_pick_month">년 월 선택</string>
+    <string name="calendar_month_picker_title">년 / 월 선택</string>
+    <string name="calendar_confirm">확인</string>
     <string name="calendar_add_event">일정 추가</string>
     <string name="calendar_empty_title">예정된 일정이 없습니다.</string>
     <string name="calendar_empty_description">이 날짜에 표시할 일정이 없어요.</string>

@@ -13,9 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +23,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
@@ -34,8 +35,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import org.eos.mynoti.R
 import org.eos.mynoti.domain.model.NotificationType
+import org.eos.mynoti.ui.components.FilterChip
 import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
 import org.eos.mynoti.ui.util.toReceivedTimeLabel
@@ -71,7 +74,9 @@ fun AddCalendarEventSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
@@ -151,9 +156,9 @@ fun AddCalendarEventSheet(
             ) {
                 NotificationType.entries.forEach { item ->
                     FilterChip(
+                        label = item.label,
                         selected = type == item,
-                        onClick = { type = item },
-                        label = { Text(text = item.label) }
+                        onClick = { type = item }
                     )
                 }
             }
@@ -193,8 +198,20 @@ fun AddCalendarEventSheet(
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         )
+        val datePickerColors = DatePickerDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            selectedDayContainerColor = MaterialTheme.colorScheme.primary,
+            selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
+            selectedYearContainerColor = MaterialTheme.colorScheme.primary,
+            selectedYearContentColor = MaterialTheme.colorScheme.onPrimary,
+            todayDateBorderColor = MaterialTheme.colorScheme.primary,
+            todayContentColor = MaterialTheme.colorScheme.primary,
+            currentYearContentColor = MaterialTheme.colorScheme.primary
+        )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
+            colors = datePickerColors,
+            tonalElevation = 0.dp,
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -215,7 +232,7 @@ fun AddCalendarEventSheet(
                 }
             }
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(state = datePickerState, colors = datePickerColors)
         }
     }
 
@@ -227,6 +244,8 @@ fun AddCalendarEventSheet(
         )
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showTimePicker = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -243,7 +262,22 @@ fun AddCalendarEventSheet(
                 }
             },
             text = {
-                TimePicker(state = timePickerState)
+                TimePicker(
+                    state = timePickerState,
+                    colors = TimePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        clockDialColor = MaterialTheme.colorScheme.surface,
+                        selectorColor = MaterialTheme.colorScheme.primary,
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                        periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface,
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary,
+                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surface,
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
             }
         )
     }

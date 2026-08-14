@@ -104,8 +104,17 @@ class CalendarViewModel(
 
     fun goToToday() {
         val today = uiState.value.today
+        if (selectedDate.value == today && currentMonth.value == YearMonth.from(today)) {
+            return
+        }
         currentMonth.value = YearMonth.from(today)
         selectedDate.value = today
+    }
+
+    fun selectMonth(month: YearMonth) {
+        if (currentMonth.value == month) return
+        currentMonth.value = month
+        selectedDate.update { current -> month.shiftedSelection(current) }
     }
 
     fun addEvent(
