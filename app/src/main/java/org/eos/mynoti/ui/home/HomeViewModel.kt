@@ -9,48 +9,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import org.eos.mynoti.data.repository.NotificationRepository
 import org.eos.mynoti.data.repository.SettingsRepository
-import org.eos.mynoti.domain.model.AppPackages
 import org.eos.mynoti.domain.model.AppSettings
 import org.eos.mynoti.domain.model.Notification
+import org.eos.mynoti.domain.model.NotificationFilter
+import org.eos.mynoti.domain.model.NotificationType
+import org.eos.mynoti.domain.model.TargetApp
 import org.eos.mynoti.domain.model.applyAppSettings
+import org.eos.mynoti.domain.model.applyFilter
 import org.eos.mynoti.domain.model.isEffectivelyImportant
 
-enum class HomeFilter(
-    val label: String,
-    val packageName: String? = null
-) {
-    ALL("All"),
-    IMPORTANT("Important"),
-    KAKAOTALK("KakaoTalk", AppPackages.KAKAOTALK),
-    LEARNING_X("LearningX", AppPackages.LEARNING_X),
-    HEY_YOUNG("HeyYoung", AppPackages.HEY_YOUNG)
-}
-
 data class HomeUiState(
-    val notifications: List<Notification> = emptyList(),
+    val visibleNotifications: List<Notification> = emptyList(),
     val settings: AppSettings = AppSettings.defaults(),
-    val selectedFilter: HomeFilter = HomeFilter.ALL,
+    val filter: NotificationFilter = NotificationFilter(),
+    val filterApps: List<TargetApp> = AppSettings.defaultTargetApps,
+    val filtersExpanded: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 ) {
-    val visibleNotifications: List<Notification>
-        get() {
-            val filtered = notifications.applyAppSettings(settings)
-            return when (selectedFilter) {
-                HomeFilter.ALL -> filtered
-                HomeFilter.IMPORTANT -> filtered.filter {
-                    it.isEffectivelyImportant(settings.highlightKeywords)
-                }
-                HomeFilter.KAKAOTALK,
-                HomeFilter.LEARNING_X,
-                HomeFilter.HEY_YOUNG -> filtered.filter {
-                    it.appPackageName == selectedFilter.packageName
-                }
-            }
-        }
-
     fun isImportant(notification: Notification): Boolean {
         return notification.isEffectivelyImportant(settings.highlightKeywords)
     }
@@ -61,17 +40,24 @@ class HomeViewModel(
     settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    private val selectedFilter = MutableStateFlow(HomeFilter.ALL)
+    private val filter = MutableStateFlow(NotificationFilter())
+    private val filtersExpanded = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeUiState> = combine(
         notificationRepository.observeNotifications(),
         settingsRepository.settings,
-        selectedFilter
-    ) { items, settings, filter ->
+        filter,
+        filtersExpanded
+    ) { items, settings, currentFilter, expanded ->
+        val visible = items
+            .applyAppSettings(settings)
+            .applyFilter(currentFilter)
         HomeUiState(
-            notifications = items,
+            visibleNotifications = visible,
             settings = settings,
-            selectedFilter = filter,
+            filter = currentFilter,
+            filterApps = settings.targetApps,
+            filtersExpanded = expanded,
             isLoading = false,
             errorMessage = null
         )
@@ -88,8 +74,42 @@ class HomeViewModel(
         initialValue = HomeUiState()
     )
 
-    fun onFilterSelected(filter: HomeFilter) {
-        selectedFilter.value = filter
+    fun selectAllApps() {
+        filter.update { it.copy(selectedApps = emptySet()) }
+    }
+
+    fun toggleApp(packageName: String) {
+        filter.update { current ->
+            val selected = if (packageName in current.selectedApps) {
+                current.selectedApps - packageName
+            } else {
+                current.selectedApps + packageName
+            }
+            current.copy(selectedApps = selected)
+        }
+    }
+
+    fun toggleType(type: NotificationType) {
+        filter.update { current ->
+            val selected = if (type in current.selectedTypes) {
+                current.selectedTypes - type
+            } else {
+                current.selectedTypes + type
+            }
+            current.copy(selectedTypes = selected)
+        }
+    }
+
+    fun toggleImportant() {
+        filter.update { it.copy(importantOnly = !it.importantOnly) }
+    }
+
+    fun clearFilters() {
+        filter.value = NotificationFilter()
+    }
+
+    fun toggleFiltersExpanded() {
+        filtersExpanded.update { !it }
     }
 
     companion object {

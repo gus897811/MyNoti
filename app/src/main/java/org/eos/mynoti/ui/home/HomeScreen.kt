@@ -15,16 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,9 +35,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import org.eos.mynoti.R
 import org.eos.mynoti.data.mock.MockNotificationData
 import org.eos.mynoti.di.LocalAppContainer
+import org.eos.mynoti.domain.model.AppSettings
+import org.eos.mynoti.domain.model.NotificationFilter
+import org.eos.mynoti.domain.model.NotificationType
+import org.eos.mynoti.domain.model.applyFilter
 import org.eos.mynoti.ui.components.EmptyState
 import org.eos.mynoti.ui.components.ErrorState
-import org.eos.mynoti.ui.components.FilterChip
 import org.eos.mynoti.ui.components.LoadingState
 import org.eos.mynoti.ui.components.NotificationCard
 import org.eos.mynoti.ui.components.SectionHeader
@@ -67,7 +64,12 @@ fun HomeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HomeScreen(
         uiState = uiState,
-        onFilterSelected = viewModel::onFilterSelected,
+        onSelectAllApps = viewModel::selectAllApps,
+        onToggleApp = viewModel::toggleApp,
+        onToggleType = viewModel::toggleType,
+        onToggleImportant = viewModel::toggleImportant,
+        onClearFilters = viewModel::clearFilters,
+        onToggleFiltersExpanded = viewModel::toggleFiltersExpanded,
         onNotificationClick = onNotificationClick,
         onSettingsClick = onSettingsClick,
         onRetry = {}
@@ -77,7 +79,12 @@ fun HomeRoute(
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    onFilterSelected: (HomeFilter) -> Unit,
+    onSelectAllApps: () -> Unit,
+    onToggleApp: (String) -> Unit,
+    onToggleType: (NotificationType) -> Unit,
+    onToggleImportant: () -> Unit,
+    onClearFilters: () -> Unit,
+    onToggleFiltersExpanded: () -> Unit,
     onNotificationClick: (Long) -> Unit,
     onSettingsClick: () -> Unit,
     onRetry: () -> Unit,
@@ -87,27 +94,18 @@ fun HomeScreen(
 
     Column(modifier = modifier.fillMaxSize()) {
         HomeHeader(onSettingsClick = onSettingsClick)
-        SectionHeader(
-            title = stringResource(R.string.filters),
-            modifier = Modifier.padding(
-                horizontal = MyNotiDimens.screenHorizontal,
-                vertical = MyNotiDimens.spaceSm
-            )
+        HomeFilterBar(
+            filter = uiState.filter,
+            apps = uiState.filterApps,
+            resultCount = uiState.visibleNotifications.size,
+            expanded = uiState.filtersExpanded,
+            onToggleExpanded = onToggleFiltersExpanded,
+            onSelectAllApps = onSelectAllApps,
+            onToggleApp = onToggleApp,
+            onToggleType = onToggleType,
+            onToggleImportant = onToggleImportant,
+            onClear = onClearFilters
         )
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = MyNotiDimens.screenHorizontal),
-            horizontalArrangement = Arrangement.spacedBy(MyNotiDimens.chipSpacing)
-        ) {
-            items(HomeFilter.entries) { filter ->
-                FilterChip(
-                    label = filter.label,
-                    selected = uiState.selectedFilter == filter,
-                    onClick = { onFilterSelected(filter) },
-                    icon = filter.icon()
-                )
-            }
-        }
 
         AnimatedContent(
             targetState = Triple(
@@ -132,15 +130,15 @@ fun HomeScreen(
                 }
                 isEmpty -> {
                     EmptyState(
-                        title = if (uiState.selectedFilter == HomeFilter.ALL) {
-                            stringResource(R.string.empty_title)
-                        } else {
+                        title = if (uiState.filter.isActive) {
                             stringResource(R.string.empty_filter_title)
-                        },
-                        description = if (uiState.selectedFilter == HomeFilter.ALL) {
-                            stringResource(R.string.empty_description)
                         } else {
+                            stringResource(R.string.empty_title)
+                        },
+                        description = if (uiState.filter.isActive) {
                             stringResource(R.string.empty_filter_description)
+                        } else {
+                            stringResource(R.string.empty_description)
                         },
                         icon = Icons.Outlined.Notifications
                     )
@@ -233,25 +231,54 @@ private fun HomeHeader(onSettingsClick: () -> Unit) {
     }
 }
 
-private fun HomeFilter.icon(): ImageVector = when (this) {
-    HomeFilter.ALL -> Icons.Outlined.Apps
-    HomeFilter.IMPORTANT -> Icons.Outlined.StarOutline
-    HomeFilter.KAKAOTALK -> Icons.Outlined.ChatBubbleOutline
-    HomeFilter.LEARNING_X -> Icons.Outlined.School
-    HomeFilter.HEY_YOUNG -> Icons.Outlined.School
-}
-
 @Preview(showBackground = true, name = "Home")
 @Preview(showBackground = true, name = "Home compact", widthDp = 320)
 @Composable
 private fun HomeScreenPreview() {
+    val notifications = MockNotificationData.create(LocalDateTime.of(2026, 8, 13, 18, 0))
     MyNotiTheme {
         HomeScreen(
             uiState = HomeUiState(
-                notifications = MockNotificationData.create(LocalDateTime.of(2026, 8, 13, 18, 0)),
+                visibleNotifications = notifications,
                 isLoading = false
             ),
-            onFilterSelected = {},
+            onSelectAllApps = {},
+            onToggleApp = {},
+            onToggleType = {},
+            onToggleImportant = {},
+            onClearFilters = {},
+            onToggleFiltersExpanded = {},
+            onNotificationClick = {},
+            onSettingsClick = {},
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Home filtered")
+@Composable
+private fun HomeScreenFilteredPreview() {
+    val filter = NotificationFilter(
+        selectedApps = setOf(org.eos.mynoti.domain.model.AppPackages.LEARNING_X),
+        selectedTypes = setOf(NotificationType.ASSIGNMENT),
+        importantOnly = true
+    )
+    val notifications = MockNotificationData.create(LocalDateTime.of(2026, 8, 13, 18, 0))
+        .applyFilter(filter)
+    MyNotiTheme {
+        HomeScreen(
+            uiState = HomeUiState(
+                visibleNotifications = notifications,
+                filter = filter,
+                filtersExpanded = true,
+                isLoading = false
+            ),
+            onSelectAllApps = {},
+            onToggleApp = {},
+            onToggleType = {},
+            onToggleImportant = {},
+            onClearFilters = {},
+            onToggleFiltersExpanded = {},
             onNotificationClick = {},
             onSettingsClick = {},
             onRetry = {}
@@ -264,8 +291,16 @@ private fun HomeScreenPreview() {
 private fun HomeScreenEmptyPreview() {
     MyNotiTheme {
         HomeScreen(
-            uiState = HomeUiState(isLoading = false),
-            onFilterSelected = {},
+            uiState = HomeUiState(
+                settings = AppSettings.defaults(),
+                isLoading = false
+            ),
+            onSelectAllApps = {},
+            onToggleApp = {},
+            onToggleType = {},
+            onToggleImportant = {},
+            onClearFilters = {},
+            onToggleFiltersExpanded = {},
             onNotificationClick = {},
             onSettingsClick = {},
             onRetry = {}

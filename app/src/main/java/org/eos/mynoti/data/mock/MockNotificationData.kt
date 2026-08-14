@@ -207,6 +207,51 @@ object MockNotificationData {
             type = NotificationType.ETC,
             remindAt = null,
             isReminded = true
+        ),
+        Notification(
+            id = 15,
+            appName = "헤이영캠퍼스",
+            appPackageName = AppPackages.HEY_YOUNG,
+            title = "캡스톤 최종 보고서 제출",
+            content = "캡스톤디자인 최종 보고서를 8월 20일 18:00까지 포털에 제출해 주세요. 미제출 시 성적이 부여되지 않습니다.",
+            summary = "캡스톤 최종 보고서 8월 20일 18:00 제출.",
+            receivedAt = now.minusHours(9),
+            isImportant = true,
+            type = NotificationType.ASSIGNMENT,
+            remindAt = now.plusDays(6).withHour(17).withMinute(0),
+            isReminded = false,
+            actions = listOf(
+                NotificationAction(id = 115, title = "캡스톤 최종 보고서 제출")
+            )
+        ),
+        Notification(
+            id = 16,
+            appName = "헤이영캠퍼스",
+            appPackageName = AppPackages.HEY_YOUNG,
+            title = "등록금 납부 안내",
+            content = "2026학년도 2학기 등록금 납부 기간은 8월 25일부터 8월 29일입니다. 가상계좌로 납부해 주세요.",
+            summary = "2학기 등록금 납부 8/25–8/29.",
+            receivedAt = now.minusHours(11),
+            isImportant = true,
+            type = NotificationType.FINANCIAL,
+            remindAt = now.plusDays(11).withHour(12).withMinute(0),
+            isReminded = false,
+            actions = listOf(
+                NotificationAction(id = 116, title = "2학기 등록금 납부")
+            )
+        ),
+        Notification(
+            id = 17,
+            appName = "헤이영캠퍼스",
+            appPackageName = AppPackages.HEY_YOUNG,
+            title = "지도교수 상담",
+            content = "김민수 교수님: 다음 주 화요일 14시 연구실에서 진로 상담 가능합니다. 참석 여부를 회신해 주세요.",
+            summary = "지도교수 상담 화요일 14시. 회신 필요.",
+            receivedAt = yesterday(now).withHour(10).withMinute(15),
+            isImportant = false,
+            type = NotificationType.COMMUNICATION,
+            remindAt = null,
+            isReminded = false
         )
     ).map { it.copy(analysisStatus = AnalysisStatus.COMPLETED) }
 
