@@ -5,9 +5,22 @@ import openai
 from openai import AsyncOpenAI
 
 from app.config import settings
-from app.prompts import get_system_prompt
+from app.prompts import FILTER_SYSTEM_PROMPT, get_system_prompt
 
 _client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+# 1차 필터링(잡담/불필요 알림 판별) 응답을 강제하는 JSON 스키마.
+# boolean 하나만 받으므로 본 분석 스키마보다 훨씬 적은 출력 토큰을 씁니다.
+FILTER_SCHEMA = {
+    "name": "filter_notification",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {"isRelevant": {"type": "boolean"}},
+        "required": ["isRelevant"],
+        "additionalProperties": False,
+    },
+}
 
 # analyze/analyze-batch 응답을 강제하는 JSON 스키마.
 # strict: true + additionalProperties: false 로 스키마를 벗어난 응답을 원천 차단합니다.
@@ -64,6 +77,45 @@ def fallback_result(title: Optional[str], content: Optional[str]) -> dict:
         "deadline": None,
         "actions": [],
     }
+
+
+async def is_notification_relevant(
+    app_name: str,
+    package_name: str,
+    title: Optional[str],
+    content: Optional[str],
+) -> bool:
+    """본 분석 전, 저비용 모델(LLM_FILTER_MODEL)로 잡담/불필요 알림을 걸러냅니다.
+
+    False를 반환하면 호출부는 본 분석(analyze_notification)을 건너뛰어 토큰을 절약합니다.
+    필터 호출 자체가 실패/타임아웃되면 True를 반환합니다(fail-open) —
+    필터링 오류로 중요한 알림을 놓치는 것보다 본 분석을 한 번 더 태우는 게 낫습니다.
+    """
+    user_content = (
+        f"appName: {app_name}\n"
+        f"packageName: {package_name}\n"
+        f"title: {title or '(없음)'}\n"
+        f"content: {content or '(없음)'}"
+    )
+
+    try:
+        response = await _client.chat.completions.create(
+            model=settings.LLM_FILTER_MODEL,
+            messages=[
+                {"role": "system", "content": FILTER_SYSTEM_PROMPT},
+                {"role": "user", "content": user_content},
+            ],
+            response_format={"type": "json_schema", "json_schema": FILTER_SCHEMA},
+            timeout=settings.LLM_TIMEOUT_SEC,
+        )
+    except openai.APIError:
+        return True
+
+    raw = response.choices[0].message.content
+    try:
+        return bool(json.loads(raw)["isRelevant"])
+    except (TypeError, KeyError, json.JSONDecodeError):
+        return True
 
 
 async def analyze_notification(

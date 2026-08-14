@@ -10,6 +10,7 @@ from app.llm_service import (
     LLMTimeoutError,
     analyze_notification,
     fallback_result,
+    is_notification_relevant,
 )
 from app.models import (
     AnalyzeRequest,
@@ -17,8 +18,10 @@ from app.models import (
     BatchAnalyzeRequest,
     BatchAnalyzeResponse,
     BatchFailedItem,
+    BatchFilteredItem,
     BatchResultItem,
     HealthResponse,
+    NotificationType,
 )
 
 app = FastAPI(title="MyNoti 백엔드 (LLM Gateway)", version="0.2.0")
@@ -41,6 +44,22 @@ async def api_error_handler(request: Request, exc: APIError):
     dependencies=[Depends(verify_api_key)],
 )
 async def analyze(req: AnalyzeRequest):
+    is_relevant = await is_notification_relevant(
+        req.appName, req.packageName, req.title, req.content
+    )
+    if not is_relevant:
+        return AnalyzeResponse(
+            summary="",
+            title="",
+            isImportant=False,
+            type=NotificationType.ETC,
+            actionRequired=False,
+            deadline=None,
+            actions=[],
+            isFallback=False,
+            isFiltered=True,
+        )
+
     try:
         result = await analyze_notification(
             req.appName,
@@ -54,7 +73,7 @@ async def analyze(req: AnalyzeRequest):
         result = fallback_result(req.title, req.content)
         is_fallback = True
 
-    return AnalyzeResponse(**result, isFallback=is_fallback)
+    return AnalyzeResponse(**result, isFallback=is_fallback, isFiltered=False)
 
 
 # ---- POST /api/v1/notifications/analyze/batch ----
@@ -72,8 +91,16 @@ async def analyze_batch(req: BatchAnalyzeRequest):
 
     results: list[BatchResultItem] = []
     failed: list[BatchFailedItem] = []
+    filtered: list[BatchFilteredItem] = []
 
     for item in req.notifications:
+        is_relevant = await is_notification_relevant(
+            item.appName, item.packageName, item.title, item.content
+        )
+        if not is_relevant:
+            filtered.append(BatchFilteredItem(localId=item.localId))
+            continue
+
         try:
             result = await analyze_notification(
                 item.appName,
@@ -88,7 +115,7 @@ async def analyze_batch(req: BatchAnalyzeRequest):
         except LLMCallError:
             failed.append(BatchFailedItem(localId=item.localId, reason="LLM_CALL_ERROR"))
 
-    return BatchAnalyzeResponse(results=results, failed=failed)
+    return BatchAnalyzeResponse(results=results, failed=failed, filtered=filtered)
 
 
 # ---- GET /api/v1/health ----

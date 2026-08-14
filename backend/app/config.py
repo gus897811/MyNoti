@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     # 모델명은 자주 바뀌므로 배포 전 https://platform.openai.com/docs/models 에서 확인하세요.
     LLM_MODEL: str = "gpt-5.6-terra"
+    # 잡담/불필요 알림 1차 필터링 전용 모델. 단순 boolean 판단만 하므로
+    # LLM_MODEL보다 저렴하고 가벼운 모델을 지정해 토큰 비용을 줄입니다.
+    LLM_FILTER_MODEL: str = "gpt-5.6-nano"
     LLM_TIMEOUT_SEC: float = 5.0
 
     class Config:

@@ -49,9 +49,22 @@ curl -X POST http://localhost:8000/api/v1/notifications/analyze \
   "actionRequired": true,
   "deadline": "2026-08-14T23:59:00+09:00",
   "actions": ["운영체제 과제 2 제출"],
-  "isFallback": false
+  "isFallback": false,
+  "isFiltered": false
 }
 ```
+
+### 잡담/불필요 알림 1차 필터링
+
+본 분석(LLM_MODEL) 전에 저비용 모델(LLM_FILTER_MODEL)로 잡담·광고·시스템 알림처럼
+사용자에게 보여줄 필요가 없는 알림을 먼저 걸러냅니다. 판단이 애매하면 항상 통과시키므로
+(fail-open) 중요한 알림이 실수로 걸러질 위험은 낮습니다.
+
+- `/analyze`: 필터링되면 `isFiltered: true`와 함께 `summary`/`title` 등 나머지 필드는
+  전부 빈 값(`""`, `false`, `[]`, `null`)으로 채워진 응답을 반환합니다. **안드로이드는
+  `isFiltered`부터 확인해서 true면 나머지 필드를 쓰지 말고 그대로 버려야 합니다** (저장/표시 금지).
+- `/analyze/batch`: 필터링된 알림은 `results`에 아예 포함되지 않고, 별도의
+  `filtered: [{"localId": 101}]` 리스트로만 표시됩니다. `localId` 외의 분석 정보는 제공하지 않습니다.
 
 ### 알림 여러 건 일괄 분석 (WorkManager용)
 
