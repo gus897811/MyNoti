@@ -37,6 +37,7 @@ import org.eos.mynoti.domain.model.AppPackages
 import org.eos.mynoti.domain.model.CalendarEvent
 import org.eos.mynoti.domain.model.NotificationType
 import org.eos.mynoti.ui.components.EmptyState
+import org.eos.mynoti.ui.components.MyNotiLogo
 import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
 import org.eos.mynoti.ui.theme.MyNotiTheme
@@ -222,12 +223,8 @@ private fun CalendarScreenHeader(onAddEvent: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.app_name),
-                    style = MyNotiTextStyles.appTitle,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f)
-                )
+                MyNotiLogo()
+                Spacer(modifier = Modifier.weight(1f))
                 CalendarAddEventButton(onClick = onAddEvent)
             }
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))

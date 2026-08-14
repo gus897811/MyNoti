@@ -40,6 +40,7 @@ import org.eos.mynoti.domain.model.applyFilter
 import org.eos.mynoti.ui.components.EmptyState
 import org.eos.mynoti.ui.components.ErrorState
 import org.eos.mynoti.ui.components.LoadingState
+import org.eos.mynoti.ui.components.MyNotiLogo
 import org.eos.mynoti.ui.components.NotificationCard
 import org.eos.mynoti.ui.components.SectionHeader
 import org.eos.mynoti.ui.theme.MyNotiDimens
@@ -204,11 +205,7 @@ private fun HomeHeader() {
         Column(
             modifier = Modifier.padding(horizontal = MyNotiDimens.spaceMd)
         ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MyNotiTextStyles.appTitle,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            MyNotiLogo()
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
             Text(
                 text = stringResource(R.string.app_tagline),

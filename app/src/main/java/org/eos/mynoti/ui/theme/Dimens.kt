@@ -19,6 +19,7 @@ object MyNotiDimens {
     val appIcon = 44.dp
     val appIconSmall = 36.dp
     val appIconLarge = 48.dp
+    val appLogoHeight = 40.dp
     val unreadDot = 7.dp
     val importantAccent = 4.dp
     val minTouchTarget = 48.dp
