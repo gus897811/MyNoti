@@ -30,6 +30,16 @@ fun LocalDateTime.toReceivedTimestamp(): String {
     return format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 }
 
+fun LocalDateTime.toReminderGroupLabel(today: LocalDate = LocalDate.now()): String {
+    val time = format(DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN))
+    val dateLabel = when (toLocalDate()) {
+        today -> "오늘"
+        today.plusDays(1) -> "내일"
+        else -> format(DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN))
+    }
+    return "$dateLabel $time"
+}
+
 fun LocalDate.toDateGroup(today: LocalDate = LocalDate.now()): NotificationDateGroup {
     return when (this) {
         today -> NotificationDateGroup.TODAY

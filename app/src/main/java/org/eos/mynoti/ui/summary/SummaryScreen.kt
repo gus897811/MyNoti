@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,6 +37,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import org.eos.mynoti.R
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.domain.model.DailySummary
+import org.eos.mynoti.domain.model.ReminderItem
+import org.eos.mynoti.domain.model.ReminderTimeGroup
 import org.eos.mynoti.domain.model.SummaryTask
 import org.eos.mynoti.ui.components.EmptyState
 import org.eos.mynoti.ui.components.ErrorState
@@ -47,6 +50,8 @@ import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
 import org.eos.mynoti.ui.theme.MyNotiTheme
 import org.eos.mynoti.ui.theme.TypeAssignment
+import org.eos.mynoti.ui.util.toReminderGroupLabel
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Composable
@@ -54,7 +59,8 @@ fun SummaryRoute(
     onNotificationClick: (Long) -> Unit,
     viewModel: SummaryViewModel = viewModel(
         factory = SummaryViewModel.factory(
-            summaryRepository = LocalAppContainer.current.summaryRepository
+            summaryRepository = LocalAppContainer.current.summaryRepository,
+            reminderRepository = LocalAppContainer.current.reminderRepository
         )
     )
 ) {
@@ -175,6 +181,29 @@ fun SummaryScreen(
                     item {
                         AiInsightCard(insight = summary.insight)
                     }
+                    item {
+                        SectionHeader(
+                            title = stringResource(R.string.summary_reminders),
+                            modifier = Modifier.padding(top = MyNotiDimens.spaceSm)
+                        )
+                    }
+                    if (uiState.reminderGroups.isEmpty()) {
+                        item {
+                            EmptyState(
+                                title = stringResource(R.string.empty_reminders_title),
+                                description = stringResource(R.string.empty_reminders_description)
+                            )
+                        }
+                    } else {
+                        uiState.reminderGroups.forEach { group ->
+                            item(key = "reminder-group-${group.remindAt}") {
+                                ReminderTimeGroupCard(
+                                    group = group,
+                                    onNotificationClick = onNotificationClick
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -285,6 +314,73 @@ private fun AiInsightCard(insight: String?) {
 }
 
 @Composable
+private fun ReminderTimeGroupCard(
+    group: ReminderTimeGroup,
+    onNotificationClick: (Long) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MyNotiCardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(MyNotiDimens.cardPadding)) {
+            Text(
+                text = group.remindAt.toReminderGroupLabel(),
+                style = MyNotiTextStyles.sectionTitle,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
+            group.items.forEachIndexed { index, item ->
+                if (index > 0) {
+                    Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
+                }
+                ReminderItemRow(
+                    item = item,
+                    onClick = { onNotificationClick(item.notificationId) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReminderItemRow(
+    item: ReminderItem,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MyNotiCardShape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(MyNotiDimens.spaceMd)) {
+            Text(
+                text = item.title,
+                style = MyNotiTextStyles.notificationTitle,
+                color = if (item.isFired) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                textDecoration = if (item.isFired) TextDecoration.LineThrough else null
+            )
+            Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+            Text(
+                text = item.appName,
+                style = MyNotiTextStyles.caption,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textDecoration = if (item.isFired) TextDecoration.LineThrough else null
+            )
+        }
+    }
+}
+
+@Composable
 private fun greetingText(): String {
     val hour = LocalTime.now().hour
     return when {
@@ -310,6 +406,34 @@ private fun SummaryScreenPreview() {
                     urgentItems = listOf(
                         SummaryTask("운영체제 과제 2", "내일 23:59 마감", 1),
                         SummaryTask("국가장학금 신청", "9월 10일 마감", 4)
+                    )
+                ),
+                reminderGroups = listOf(
+                    ReminderTimeGroup(
+                        remindAt = LocalDateTime.of(2026, 8, 14, 20, 0),
+                        items = listOf(
+                            ReminderItem(
+                                id = 1,
+                                notificationId = 1,
+                                title = "운영체제 과제 2 제출",
+                                appName = "LearningX",
+                                remindAt = LocalDateTime.of(2026, 8, 14, 20, 0),
+                                isFired = true
+                            )
+                        )
+                    ),
+                    ReminderTimeGroup(
+                        remindAt = LocalDateTime.of(2026, 8, 15, 12, 0),
+                        items = listOf(
+                            ReminderItem(
+                                id = 2,
+                                notificationId = 4,
+                                title = "국가장학금 2차 신청",
+                                appName = "헤이영캠퍼스",
+                                remindAt = LocalDateTime.of(2026, 8, 15, 12, 0),
+                                isFired = false
+                            )
+                        )
                     )
                 ),
                 isLoading = false

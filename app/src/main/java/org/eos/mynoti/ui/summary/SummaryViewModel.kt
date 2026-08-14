@@ -6,25 +6,36 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import org.eos.mynoti.data.repository.ReminderRepository
 import org.eos.mynoti.data.repository.SummaryRepository
 import org.eos.mynoti.domain.model.DailySummary
+import org.eos.mynoti.domain.model.ReminderGroupFactory
+import org.eos.mynoti.domain.model.ReminderTimeGroup
 
 data class SummaryUiState(
     val summary: DailySummary? = null,
+    val reminderGroups: List<ReminderTimeGroup> = emptyList(),
     val isLoading: Boolean = true,
     val errorMessage: String? = null
 )
 
 class SummaryViewModel(
-    summaryRepository: SummaryRepository
+    summaryRepository: SummaryRepository,
+    reminderRepository: ReminderRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<SummaryUiState> = summaryRepository.observeDailySummary()
-        .map { summary ->
-            SummaryUiState(summary = summary, isLoading = false)
-        }
+    val uiState: StateFlow<SummaryUiState> = combine(
+        summaryRepository.observeDailySummary(),
+        reminderRepository.observeVisibleItems()
+    ) { summary, reminders ->
+        SummaryUiState(
+            summary = summary,
+            reminderGroups = ReminderGroupFactory.group(reminders),
+            isLoading = false
+        )
+    }
         .catch { error ->
             emit(
                 SummaryUiState(
@@ -40,11 +51,14 @@ class SummaryViewModel(
         )
 
     companion object {
-        fun factory(summaryRepository: SummaryRepository): ViewModelProvider.Factory {
+        fun factory(
+            summaryRepository: SummaryRepository,
+            reminderRepository: ReminderRepository
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return SummaryViewModel(summaryRepository) as T
+                    return SummaryViewModel(summaryRepository, reminderRepository) as T
                 }
             }
         }

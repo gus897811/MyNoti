@@ -12,12 +12,16 @@ import org.eos.mynoti.data.local.AppDatabase
 import org.eos.mynoti.data.local.DatabaseSeeder
 import org.eos.mynoti.data.local.DefaultSettingsRepository
 import org.eos.mynoti.data.local.RoomNotificationRepository
+import org.eos.mynoti.data.local.RoomReminderRepository
 import org.eos.mynoti.data.local.RoomSummaryRepository
 import org.eos.mynoti.data.remote.NetworkModule
 import org.eos.mynoti.data.remote.RemoteDataSource
+import org.eos.mynoti.data.reminder.ReminderNotifier
+import org.eos.mynoti.data.reminder.ReminderScheduler
 import org.eos.mynoti.data.repository.DefaultLlmRepository
 import org.eos.mynoti.data.repository.LlmRepository
 import org.eos.mynoti.data.repository.NotificationRepository
+import org.eos.mynoti.data.repository.ReminderRepository
 import org.eos.mynoti.data.repository.SettingsRepository
 import org.eos.mynoti.data.repository.SummaryRepository
 import org.eos.mynoti.data.work.AnalysisScheduler
@@ -43,6 +47,13 @@ class AppContainer(context: Context) {
         settingsRepository = settingsRepository
     )
 
+    val reminderRepository: ReminderRepository = RoomReminderRepository(
+        reminderDao = database.reminderDao(),
+        notificationDao = database.notificationDao(),
+        scheduler = ReminderScheduler(context),
+        notifier = ReminderNotifier(context)
+    )
+
     val notificationIngest: NotificationIngest = NotificationIngest(
         context = context.applicationContext,
         notificationRepository = notificationRepository
@@ -55,6 +66,7 @@ class AppContainer(context: Context) {
                 notificationDao = database.notificationDao(),
                 keywordRuleDao = database.keywordRuleDao()
             )
+            reminderRepository.reschedulePending()
             AnalysisScheduler.enqueue(context)
         }
     }

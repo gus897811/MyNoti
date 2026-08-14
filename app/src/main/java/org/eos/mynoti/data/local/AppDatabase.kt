@@ -12,15 +12,18 @@ import org.eos.mynoti.data.local.converter.NotificationTypeConverter
 import org.eos.mynoti.data.local.converter.StringListConverter
 import org.eos.mynoti.data.local.dao.KeywordRuleDao
 import org.eos.mynoti.data.local.dao.NotificationDao
+import org.eos.mynoti.data.local.dao.ReminderDao
 import org.eos.mynoti.data.local.entity.KeywordRuleEntity
 import org.eos.mynoti.data.local.entity.NotificationEntity
+import org.eos.mynoti.data.local.entity.ReminderEntity
 
 @Database(
     entities = [
         NotificationEntity::class,
-        KeywordRuleEntity::class
+        KeywordRuleEntity::class,
+        ReminderEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(
@@ -36,6 +39,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun keywordRuleDao(): KeywordRuleDao
 
+    abstract fun reminderDao(): ReminderDao
+
     companion object {
         private const val DATABASE_NAME = "mynoti.db"
 
@@ -49,7 +54,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     DATABASE_NAME
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                     .also { instance = it }
             }

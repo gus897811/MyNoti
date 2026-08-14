@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import org.eos.mynoti.di.AppContainer
 import org.eos.mynoti.di.LocalAppContainer
 import org.eos.mynoti.ui.components.BottomNavigationBar
@@ -105,6 +106,9 @@ fun MyNotiNavHost(
                 route = Routes.NOTIFICATION_DETAIL,
                 arguments = listOf(
                     navArgument("notificationId") { type = NavType.LongType }
+                ),
+                deepLinks = listOf(
+                    navDeepLink { uriPattern = "mynoti://notification/{notificationId}" }
                 )
             ) { backStackEntry ->
                 val id = backStackEntry.arguments?.getLong("notificationId") ?: return@composable
