@@ -19,9 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +51,6 @@ import java.time.LocalDateTime
 @Composable
 fun HomeRoute(
     onNotificationClick: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.factory(
             notificationRepository = LocalAppContainer.current.notificationRepository,
@@ -71,7 +68,6 @@ fun HomeRoute(
         onClearFilters = viewModel::clearFilters,
         onToggleFiltersExpanded = viewModel::toggleFiltersExpanded,
         onNotificationClick = onNotificationClick,
-        onSettingsClick = onSettingsClick,
         onRetry = {}
     )
 }
@@ -86,14 +82,13 @@ fun HomeScreen(
     onClearFilters: () -> Unit,
     onToggleFiltersExpanded: () -> Unit,
     onNotificationClick: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val grouped = uiState.visibleNotifications.groupedByDate()
 
     Column(modifier = modifier.fillMaxSize()) {
-        HomeHeader(onSettingsClick = onSettingsClick)
+        HomeHeader()
         HomeFilterBar(
             filter = uiState.filter,
             apps = uiState.filterApps,
@@ -180,7 +175,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeHeader(onSettingsClick: () -> Unit) {
+private fun HomeHeader() {
     Column(
         modifier = Modifier.padding(
             start = MyNotiDimens.spaceSm,
@@ -205,13 +200,6 @@ private fun HomeHeader(onSettingsClick: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onSettingsClick) {
-                Icon(
-                    imageVector = Icons.Outlined.Settings,
-                    contentDescription = stringResource(R.string.cd_settings),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
         }
         Column(
             modifier = Modifier.padding(horizontal = MyNotiDimens.spaceMd)
@@ -249,7 +237,6 @@ private fun HomeScreenPreview() {
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},
-            onSettingsClick = {},
             onRetry = {}
         )
     }
@@ -280,7 +267,6 @@ private fun HomeScreenFilteredPreview() {
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},
-            onSettingsClick = {},
             onRetry = {}
         )
     }
@@ -302,7 +288,6 @@ private fun HomeScreenEmptyPreview() {
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},
-            onSettingsClick = {},
             onRetry = {}
         )
     }

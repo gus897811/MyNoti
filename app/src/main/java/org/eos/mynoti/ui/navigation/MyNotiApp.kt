@@ -71,15 +71,6 @@ fun MyNotiNavHost(
                 HomeRoute(
                     onNotificationClick = { id ->
                         navController.navigate(Routes.notificationDetail(id))
-                    },
-                    onSettingsClick = {
-                        navController.navigate(Routes.SETTINGS) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
                     }
                 )
             }
@@ -94,15 +85,6 @@ fun MyNotiNavHost(
                 CalendarRoute(
                     onNotificationClick = { id ->
                         navController.navigate(Routes.notificationDetail(id))
-                    },
-                    onSettingsClick = {
-                        navController.navigate(Routes.SETTINGS) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
                     }
                 )
             }

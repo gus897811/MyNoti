@@ -16,10 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,7 +48,6 @@ import java.time.YearMonth
 @Composable
 fun CalendarRoute(
     onNotificationClick: (Long) -> Unit,
-    onSettingsClick: () -> Unit,
     viewModel: CalendarViewModel = viewModel(
         factory = CalendarViewModel.factory(
             notificationRepository = LocalAppContainer.current.notificationRepository,
@@ -69,8 +66,7 @@ fun CalendarRoute(
         onEventClick = { event ->
             event.notificationId?.let(onNotificationClick)
         },
-        onAddEvent = viewModel::addEvent,
-        onSettingsClick = onSettingsClick
+        onAddEvent = viewModel::addEvent
     )
 }
 
@@ -83,14 +79,13 @@ fun CalendarScreen(
     onToday: () -> Unit,
     onEventClick: (CalendarEvent) -> Unit,
     onAddEvent: (String, String?, LocalDateTime, NotificationType, Boolean) -> Unit,
-    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            CalendarScreenHeader(onSettingsClick = onSettingsClick)
+            CalendarScreenHeader()
             CalendarMonthHeader(
                 month = uiState.currentMonth,
                 onPrevious = onPreviousMonth,
@@ -175,7 +170,7 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun CalendarScreenHeader(onSettingsClick: () -> Unit) {
+private fun CalendarScreenHeader() {
     Column(
         modifier = Modifier.padding(
             start = MyNotiDimens.spaceSm,
@@ -200,13 +195,6 @@ private fun CalendarScreenHeader(onSettingsClick: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onSettingsClick) {
-                Icon(
-                    imageVector = Icons.Outlined.Settings,
-                    contentDescription = stringResource(R.string.cd_settings),
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
         }
         Column(modifier = Modifier.padding(horizontal = MyNotiDimens.spaceMd)) {
             Text(
@@ -243,8 +231,7 @@ private fun CalendarScreenPreview() {
             onNextMonth = {},
             onToday = {},
             onEventClick = {},
-            onAddEvent = { _, _, _, _, _ -> },
-            onSettingsClick = {}
+            onAddEvent = { _, _, _, _, _ -> }
         )
     }
 }
@@ -267,8 +254,7 @@ private fun CalendarScreenEmptyPreview() {
             onNextMonth = {},
             onToday = {},
             onEventClick = {},
-            onAddEvent = { _, _, _, _, _ -> },
-            onSettingsClick = {}
+            onAddEvent = { _, _, _, _, _ -> }
         )
     }
 }
