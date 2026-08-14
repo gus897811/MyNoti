@@ -31,7 +31,7 @@ curl -X POST http://localhost:8000/api/v1/notifications/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "appName": "LearningX Student",
-    "packageName": "com.learningx.student",
+    "packageName": "com.instructure.candroid.xinics2.production",
     "title": "운영체제 과제 제출 안내",
     "content": "운영체제 과제 2를 8월 14일 23:59까지 제출하세요.",
     "receivedAt": "2026-08-13T10:30:00+09:00"
@@ -64,7 +64,7 @@ curl -X POST http://localhost:8000/api/v1/notifications/analyze/batch \
       {
         "localId": 101,
         "appName": "LearningX Student",
-        "packageName": "com.learningx.student",
+        "packageName": "com.instructure.candroid.xinics2.production",
         "title": "과제 공지",
         "content": "운영체제 과제 2가 등록되었습니다.",
         "receivedAt": "2026-08-13T10:30:00+09:00"

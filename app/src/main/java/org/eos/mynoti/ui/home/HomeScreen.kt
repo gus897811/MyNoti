@@ -24,6 +24,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,6 +68,7 @@ fun HomeRoute(
         uiState = uiState,
         onSelectAllApps = viewModel::selectAllApps,
         onToggleApp = viewModel::toggleApp,
+        onRemoveAppFilter = viewModel::removeAppFilter,
         onToggleType = viewModel::toggleType,
         onToggleImportant = viewModel::toggleImportant,
         onClearFilters = viewModel::clearFilters,
@@ -79,6 +83,7 @@ fun HomeScreen(
     uiState: HomeUiState,
     onSelectAllApps: () -> Unit,
     onToggleApp: (String) -> Unit,
+    onRemoveAppFilter: (String) -> Unit,
     onToggleType: (NotificationType) -> Unit,
     onToggleImportant: () -> Unit,
     onClearFilters: () -> Unit,
@@ -88,6 +93,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val grouped = uiState.visibleNotifications.groupedByDate()
+    var showAppFilterSheet by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxSize()) {
         HomeHeader()
@@ -98,7 +104,8 @@ fun HomeScreen(
             expanded = uiState.filtersExpanded,
             onToggleExpanded = onToggleFiltersExpanded,
             onSelectAllApps = onSelectAllApps,
-            onToggleApp = onToggleApp,
+            onRemoveAppFilter = onRemoveAppFilter,
+            onAddAppFilterClick = { showAppFilterSheet = true },
             onToggleType = onToggleType,
             onToggleImportant = onToggleImportant,
             onClear = onClearFilters
@@ -174,6 +181,15 @@ fun HomeScreen(
             }
         }
     }
+
+    if (showAppFilterSheet) {
+        HomeAppFilterSheet(
+            apps = uiState.filterApps,
+            selectedApps = uiState.filter.selectedApps,
+            onToggleApp = onToggleApp,
+            onDismiss = { showAppFilterSheet = false }
+        )
+    }
 }
 
 @Composable
@@ -226,10 +242,12 @@ private fun HomeScreenPreview() {
         HomeScreen(
             uiState = HomeUiState(
                 visibleNotifications = notifications,
+                filtersExpanded = true,
                 isLoading = false
             ),
             onSelectAllApps = {},
             onToggleApp = {},
+            onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
             onClearFilters = {},
@@ -260,6 +278,7 @@ private fun HomeScreenFilteredPreview() {
             ),
             onSelectAllApps = {},
             onToggleApp = {},
+            onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
             onClearFilters = {},
@@ -281,6 +300,7 @@ private fun HomeScreenEmptyPreview() {
             ),
             onSelectAllApps = {},
             onToggleApp = {},
+            onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
             onClearFilters = {},

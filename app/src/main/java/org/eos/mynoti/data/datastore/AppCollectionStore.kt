@@ -33,30 +33,38 @@ class AppCollectionStore(
     }.flowOn(Dispatchers.IO)
 
     suspend fun setTargetAppEnabled(packageName: String, enabled: Boolean) {
-        val pkg = packageName.trim()
+        val pkg = remapLegacyPackageName(packageName.trim())
         if (pkg.isEmpty()) return
         dataStore.edit { prefs ->
-            val current = prefs[TARGET_APPS] ?: defaultEnabledPackageNames()
+            val selected = remapLegacyPackageSet(prefs[TARGET_APP_PACKAGES] ?: defaultTargetPackageNames())
+            val current = remapLegacyPackageSet(prefs[TARGET_APPS] ?: defaultEnabledPackageNames())
+            prefs[TARGET_APP_PACKAGES] = selected
             prefs[TARGET_APPS] = if (enabled) current + pkg else current - pkg
         }
     }
 
     @Suppress("UNUSED_PARAMETER")
     suspend fun addTargetApp(packageName: String, name: String) {
+        val pkg = remapLegacyPackageName(packageName.trim())
         dataStore.edit { prefs ->
-            val selected = prefs[TARGET_APP_PACKAGES] ?: defaultTargetPackageNames()
-            val enabled = prefs[TARGET_APPS] ?: defaultEnabledPackageNames()
-            val updated = addTargetAppMembership(selected, enabled, packageName) ?: return@edit
+            val selected = remapLegacyPackageSet(prefs[TARGET_APP_PACKAGES] ?: defaultTargetPackageNames())
+            val enabled = remapLegacyPackageSet(prefs[TARGET_APPS] ?: defaultEnabledPackageNames())
+            val updated = addTargetAppMembership(selected, enabled, pkg) ?: run {
+                prefs[TARGET_APP_PACKAGES] = selected
+                prefs[TARGET_APPS] = enabled
+                return@edit
+            }
             prefs[TARGET_APP_PACKAGES] = updated.first
             prefs[TARGET_APPS] = updated.second
         }
     }
 
     suspend fun removeTargetApp(packageName: String) {
+        val pkg = remapLegacyPackageName(packageName.trim())
         dataStore.edit { prefs ->
-            val selected = prefs[TARGET_APP_PACKAGES] ?: defaultTargetPackageNames()
-            val enabled = prefs[TARGET_APPS] ?: defaultEnabledPackageNames()
-            val updated = removeTargetAppMembership(selected, enabled, packageName)
+            val selected = remapLegacyPackageSet(prefs[TARGET_APP_PACKAGES] ?: defaultTargetPackageNames())
+            val enabled = remapLegacyPackageSet(prefs[TARGET_APPS] ?: defaultEnabledPackageNames())
+            val updated = removeTargetAppMembership(selected, enabled, pkg)
             prefs[TARGET_APP_PACKAGES] = updated.first
             prefs[TARGET_APPS] = updated.second
         }

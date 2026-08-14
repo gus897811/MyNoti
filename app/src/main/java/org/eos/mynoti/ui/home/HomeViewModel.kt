@@ -104,6 +104,12 @@ class HomeViewModel(
         }
     }
 
+    fun removeAppFilter(packageName: String) {
+        filter.update { current ->
+            current.copy(selectedApps = current.selectedApps - packageName)
+        }
+    }
+
     fun toggleType(type: NotificationType) {
         filter.update { current ->
             val selected = if (type in current.selectedTypes) {

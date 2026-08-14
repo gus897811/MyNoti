@@ -134,10 +134,9 @@ DEFAULT_ADDON = """
 """
 
 # packageName / appName에 포함된 키워드로 앱별 프롬프트를 분기합니다.
-# 실제 패키지명이 확정되면 이 매핑을 갱신하세요. (예: 실제 헤이영/LearningX 패키지명)
 _PACKAGE_KEYWORD_MAP = [
-    (("learningx", "lms"), LEARNINGX_ADDON),
-    (("heyyoung", "hyu"), HEYYOUNG_ADDON),
+    (("learningx", "lms", "xinics", "instructure"), LEARNINGX_ADDON),
+    (("heyyoung", "heyoung", "hyu"), HEYYOUNG_ADDON),
     (("kakao",), KAKAOTALK_ADDON),
     (("instagram",), INSTAGRAM_ADDON),
     (

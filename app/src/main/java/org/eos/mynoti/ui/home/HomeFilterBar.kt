@@ -17,11 +17,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -51,7 +53,8 @@ fun HomeFilterBar(
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
     onSelectAllApps: () -> Unit,
-    onToggleApp: (String) -> Unit,
+    onRemoveAppFilter: (String) -> Unit,
+    onAddAppFilterClick: () -> Unit,
     onToggleType: (NotificationType) -> Unit,
     onToggleImportant: () -> Unit,
     onClear: () -> Unit,
@@ -127,25 +130,55 @@ fun HomeFilterBar(
                 }
 
                 FilterSection(title = stringResource(R.string.filter_apps)) {
-                    LazyRow(
+                    val selectedApps = apps.filter { it.packageName in filter.selectedApps }
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = MyNotiDimens.screenHorizontal),
-                        horizontalArrangement = Arrangement.spacedBy(MyNotiDimens.chipSpacing)
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        item {
-                            AppFilterChip(
-                                label = stringResource(R.string.filter_all_apps),
-                                selected = filter.isAllApps,
-                                onClick = onSelectAllApps,
-                                icon = Icons.Outlined.Apps
+                        IconButton(
+                            onClick = onAddAppFilterClick,
+                            modifier = Modifier
+                                .padding(start = MyNotiDimens.screenHorizontal)
+                                .defaultMinSize(
+                                    minWidth = MyNotiDimens.filterMinHeight,
+                                    minHeight = MyNotiDimens.filterMinHeight
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Add,
+                                contentDescription = stringResource(R.string.cd_add_app_filter),
+                                tint = MaterialTheme.colorScheme.onBackground
                             )
                         }
-                        items(apps, key = { it.packageName }) { app ->
-                            AppFilterChip(
-                                label = app.name,
-                                selected = app.packageName in filter.selectedApps,
-                                onClick = { onToggleApp(app.packageName) }
-                            )
+                        LazyRow(
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(
+                                start = MyNotiDimens.chipSpacing,
+                                end = MyNotiDimens.screenHorizontal
+                            ),
+                            horizontalArrangement = Arrangement.spacedBy(MyNotiDimens.chipSpacing),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            item(key = "all-apps") {
+                                AppFilterChip(
+                                    label = stringResource(R.string.filter_all_apps),
+                                    selected = filter.isAllApps,
+                                    onClick = onSelectAllApps,
+                                    icon = Icons.Outlined.Apps
+                                )
+                            }
+                            items(selectedApps, key = { it.packageName }) { app ->
+                                AppFilterChip(
+                                    label = app.name,
+                                    selected = true,
+                                    onClick = {},
+                                    onRemove = { onRemoveAppFilter(app.packageName) },
+                                    removeContentDescription = stringResource(
+                                        R.string.cd_remove_app_filter,
+                                        app.name
+                                    )
+                                )
+                            }
                         }
                     }
                 }

@@ -128,4 +128,88 @@ class TargetAppMembershipTest {
             filterInstalledApps(apps, added, "com.google").map { it.label }
         )
     }
+
+    @Test
+    fun remapsLegacyMockPackagesToRealOnes() {
+        val remapped = remapLegacyPackageSet(
+            setOf("com.learningx.app", "kr.co.heyyoung.campus", "com.shinhancard.app")
+        )
+        assertEquals(
+            setOf(AppPackages.LEARNING_X, AppPackages.HEY_YOUNG, AppPackages.SHINHAN_CARD),
+            remapped
+        )
+        assertTrue(legacyTargetAppPackages.keys.none { it in remapped })
+    }
+
+    @Test
+    fun remapsLegacyAndRealDuplicatesToOne() {
+        val remapped = remapLegacyPackageSet(
+            setOf("com.learningx.app", AppPackages.LEARNING_X, "com.android.chrome")
+        )
+        assertEquals(setOf(AppPackages.LEARNING_X, "com.android.chrome"), remapped)
+    }
+
+    @Test
+    fun legacyEnabledKeepsRealPackageEnabled() {
+        val apps = resolveTargetApps(
+            selectedPackages = setOf("com.learningx.app", AppPackages.KAKAOTALK),
+            enabledPackages = setOf("com.learningx.app"),
+            resolveName = ::fallbackTargetAppName
+        )
+        assertEquals(AppPackages.LEARNING_X, apps.first().packageName)
+        assertTrue(apps.first { it.packageName == AppPackages.LEARNING_X }.enabled)
+        assertFalse(apps.any { it.packageName == "com.learningx.app" })
+        assertFalse(apps.first { it.packageName == AppPackages.KAKAOTALK }.enabled)
+    }
+
+    @Test
+    fun shinhanSbankingIsNotTreatedAsShinhanCard() {
+        val remapped = remapLegacyPackageSet(
+            setOf("com.shinhan.sbanking", "com.shinhancard.app")
+        )
+        assertTrue("com.shinhan.sbanking" in remapped)
+        assertTrue(AppPackages.SHINHAN_CARD in remapped)
+        assertEquals("com.shcard.smartpay", AppPackages.SHINHAN_CARD)
+        assertFalse("com.shinhancard.app" in remapped)
+    }
+
+    @Test
+    fun dumpLikeSetCollapsesMocksAndKeepsSbanking() {
+        val apps = resolveTargetApps(
+            selectedPackages = setOf(
+                "com.learningx.app",
+                "kr.co.heyyoung.campus",
+                "com.shinhancard.app",
+                AppPackages.KAKAOBANK,
+                AppPackages.KAKAOTALK,
+                AppPackages.LEARNING_X,
+                AppPackages.HEY_YOUNG,
+                "com.shinhan.sbanking"
+            ),
+            enabledPackages = setOf(
+                "com.learningx.app",
+                "kr.co.heyyoung.campus",
+                "com.shinhancard.app",
+                AppPackages.KAKAOBANK,
+                AppPackages.KAKAOTALK,
+                AppPackages.LEARNING_X,
+                AppPackages.HEY_YOUNG,
+                "com.shinhan.sbanking"
+            ),
+            resolveName = ::fallbackTargetAppName
+        )
+        assertEquals(
+            listOf(
+                AppPackages.LEARNING_X,
+                AppPackages.HEY_YOUNG,
+                AppPackages.KAKAOTALK,
+                AppPackages.SHINHAN_CARD,
+                AppPackages.KAKAOBANK,
+                "com.shinhan.sbanking"
+            ),
+            apps.map { it.packageName }
+        )
+        assertTrue(apps.all { it.enabled })
+        assertTrue(legacyTargetAppPackages.keys.none { legacy -> apps.any { it.packageName == legacy } })
+    }
 }

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.eos.mynoti.data.local.dao.NotificationDao
 import org.eos.mynoti.data.local.entity.NotificationEntity
+import org.eos.mynoti.domain.model.AppPackages
 import org.eos.mynoti.domain.model.NotificationType
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -77,7 +78,7 @@ class NotificationDaoTest {
     fun observeByPackageName() = runTest {
         dao.insertAll(
             listOf(
-                sample(title = "lms", appPackageName = "com.learningx.app"),
+                sample(title = "lms", appPackageName = AppPackages.LEARNING_X),
                 sample(title = "talk", appPackageName = "com.kakao.talk")
             )
         )

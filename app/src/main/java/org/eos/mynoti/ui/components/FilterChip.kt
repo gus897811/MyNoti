@@ -1,5 +1,6 @@
 package org.eos.mynoti.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.FilterChip as MaterialFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -15,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
@@ -26,14 +29,21 @@ fun FilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    onRemove: (() -> Unit)? = null,
+    removeContentDescription: String? = null
 ) {
     MaterialFilterChip(
         selected = selected,
         onClick = onClick,
         modifier = modifier.defaultMinSize(minHeight = MyNotiDimens.filterMinHeight),
         label = {
-            Text(text = label, style = MyNotiTextStyles.metadata)
+            Text(
+                text = label,
+                style = MyNotiTextStyles.metadata,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
         leadingIcon = icon?.let { image ->
             {
@@ -44,10 +54,22 @@ fun FilterChip(
                 )
             }
         },
+        trailingIcon = onRemove?.let { remove ->
+            {
+                Icon(
+                    imageVector = Icons.Outlined.Close,
+                    contentDescription = removeContentDescription,
+                    modifier = Modifier
+                        .size(MyNotiDimens.spaceLg)
+                        .clickable(onClick = remove)
+                )
+            }
+        },
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primary,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+            selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -58,14 +80,18 @@ fun AppFilterChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    onRemove: (() -> Unit)? = null,
+    removeContentDescription: String? = null
 ) {
     FilterChip(
         label = label,
         selected = selected,
         onClick = onClick,
         modifier = modifier,
-        icon = icon
+        icon = icon,
+        onRemove = onRemove,
+        removeContentDescription = removeContentDescription
     )
 }
 
@@ -101,6 +127,13 @@ private fun FilterChipPreview() {
                 icon = Icons.Outlined.Apps
             )
             FilterChip(label = "중요", selected = false, onClick = {})
+            FilterChip(
+                label = "LearningX",
+                selected = true,
+                onClick = {},
+                onRemove = {},
+                removeContentDescription = "LearningX 필터 삭제"
+            )
         }
     }
 }

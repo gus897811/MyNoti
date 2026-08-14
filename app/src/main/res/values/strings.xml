@@ -17,6 +17,11 @@
     <string name="filter_types">Types</string>
     <string name="filter_all_apps">All</string>
     <string name="filter_important">중요</string>
+    <string name="cd_add_app_filter">앱 필터 추가</string>
+    <string name="cd_remove_app_filter">%1$s 필터 삭제</string>
+    <string name="filter_apps_picker_title">앱 필터</string>
+    <string name="filter_apps_picker_description">홈에 표시할 앱을 선택하세요.</string>
+    <string name="filter_apps_picker_empty">설정에서 모니터링할 앱을 먼저 추가하세요.</string>
     <string name="filter_result_count">%1$d개의 알림</string>
     <string name="clear_filters">초기화</string>
     <string name="empty_title">새로운 알림이 없습니다.</string>
