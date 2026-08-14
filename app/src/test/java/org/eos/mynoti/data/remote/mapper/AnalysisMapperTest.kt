@@ -21,9 +21,7 @@ class AnalysisMapperTest {
             summary = null,
             receivedAt = LocalDateTime.of(2026, 8, 13, 10, 30),
             isImportant = false,
-            type = NotificationType.ETC,
-            remindAt = null,
-            isReminded = false
+            type = NotificationType.ETC
         )
 
         val request = notification.toAnalyzeRequest()

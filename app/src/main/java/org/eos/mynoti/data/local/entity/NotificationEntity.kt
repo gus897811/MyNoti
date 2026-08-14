@@ -37,18 +37,12 @@ data class NotificationEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: LocalDateTime,
 
-    @ColumnInfo(name = "remind_at")
-    val remindAt: LocalDateTime?,
+    // LLM 분석 결과. deadline은 백엔드 AnalyzeResponse와 동일한 이름이다.
+    @ColumnInfo(name = "deadline")
+    val deadline: LocalDateTime? = null,
 
-    @ColumnInfo(name = "is_reminded")
-    val isReminded: Boolean = false,
-
-    // LLM 분석 결과. v1에는 없었고 v2 migration으로 추가한다.
     @ColumnInfo(name = "summary")
     val summary: String? = null,
-
-    @ColumnInfo(name = "action_required")
-    val actionRequired: Boolean = false,
 
     @ColumnInfo(name = "analysis_status")
     val analysisStatus: AnalysisStatus = AnalysisStatus.PENDING,

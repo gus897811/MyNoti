@@ -20,8 +20,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(1).minusMinutes(12),
             isImportant = true,
             type = NotificationType.ASSIGNMENT,
-            remindAt = now.plusDays(1).withHour(20).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(1).withHour(20).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 101, title = "운영체제 과제 2 제출")
             )
@@ -36,8 +35,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(3).minusMinutes(20),
             isImportant = false,
             type = NotificationType.CLASS,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 3,
@@ -49,8 +47,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(5),
             isImportant = true,
             type = NotificationType.ASSIGNMENT,
-            remindAt = now.plusDays(4).withHour(21).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(4).withHour(21).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 103, title = "최단 경로 알고리즘 비교 과제 제출")
             )
@@ -65,8 +62,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(6).minusMinutes(40),
             isImportant = true,
             type = NotificationType.ETC,
-            remindAt = now.plusDays(2).withHour(12).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(2).withHour(12).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 104, title = "국가장학금 2차 신청")
             )
@@ -81,8 +77,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(8),
             isImportant = false,
             type = NotificationType.CLASS,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 6,
@@ -94,8 +89,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(2).minusMinutes(5),
             isImportant = true,
             type = NotificationType.COMMUNICATION,
-            remindAt = now.withHour(22).withMinute(0),
-            isReminded = false,
+            deadline = now.withHour(22).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 106, title = "발표 자료 초안 공유"),
                 NotificationAction(id = 107, title = "도서관 스터디룸 3시 참석")
@@ -111,8 +105,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(4).minusMinutes(15),
             isImportant = false,
             type = NotificationType.COMMUNICATION,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 8,
@@ -124,8 +117,7 @@ object MockNotificationData {
             receivedAt = now.minusMinutes(45),
             isImportant = false,
             type = NotificationType.FINANCIAL,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 9,
@@ -137,8 +129,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(7).minusMinutes(10),
             isImportant = false,
             type = NotificationType.FINANCIAL,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 10,
@@ -150,8 +141,7 @@ object MockNotificationData {
             receivedAt = yesterday(now).withHour(16).withMinute(20),
             isImportant = true,
             type = NotificationType.CLASS,
-            remindAt = now.plusDays(3).withHour(10).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(3).withHour(10).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 110, title = "폐강 과목 대체 수강 신청 확인")
             )
@@ -166,8 +156,7 @@ object MockNotificationData {
             receivedAt = yesterday(now).withHour(11).withMinute(5),
             isImportant = false,
             type = NotificationType.CLASS,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 12,
@@ -179,8 +168,7 @@ object MockNotificationData {
             receivedAt = yesterday(now).withHour(19).withMinute(42),
             isImportant = false,
             type = NotificationType.COMMUNICATION,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 13,
@@ -192,8 +180,7 @@ object MockNotificationData {
             receivedAt = now.minusDays(2).withHour(13).withMinute(8),
             isImportant = false,
             type = NotificationType.FINANCIAL,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         ),
         Notification(
             id = 14,
@@ -205,8 +192,7 @@ object MockNotificationData {
             receivedAt = now.minusDays(3).withHour(9).withMinute(50),
             isImportant = false,
             type = NotificationType.ETC,
-            remindAt = null,
-            isReminded = true
+            deadline = null,
         ),
         Notification(
             id = 15,
@@ -218,8 +204,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(9),
             isImportant = true,
             type = NotificationType.ASSIGNMENT,
-            remindAt = now.plusDays(6).withHour(17).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(6).withHour(17).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 115, title = "캡스톤 최종 보고서 제출")
             )
@@ -234,8 +219,7 @@ object MockNotificationData {
             receivedAt = now.minusHours(11),
             isImportant = true,
             type = NotificationType.FINANCIAL,
-            remindAt = now.plusDays(11).withHour(12).withMinute(0),
-            isReminded = false,
+            deadline = now.plusDays(11).withHour(12).withMinute(0),
             actions = listOf(
                 NotificationAction(id = 116, title = "2학기 등록금 납부")
             )
@@ -250,8 +234,7 @@ object MockNotificationData {
             receivedAt = yesterday(now).withHour(10).withMinute(15),
             isImportant = false,
             type = NotificationType.COMMUNICATION,
-            remindAt = null,
-            isReminded = false
+            deadline = null,
         )
     ).map { it.copy(analysisStatus = AnalysisStatus.COMPLETED) }
 

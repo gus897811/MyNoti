@@ -117,8 +117,6 @@ class NotificationDaoTest {
         receivedAt = receivedAt,
         isImportant = isImportant,
         type = NotificationType.ASSIGNMENT,
-        createdAt = receivedAt,
-        remindAt = null,
-        isReminded = false
+        createdAt = receivedAt
     )
 }

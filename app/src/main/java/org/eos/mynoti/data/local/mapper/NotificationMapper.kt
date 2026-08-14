@@ -15,12 +15,10 @@ fun NotificationEntity.toDomain(): Notification {
         receivedAt = receivedAt,
         isImportant = isImportant,
         type = type,
-        remindAt = remindAt,
-        isReminded = isReminded,
+        deadline = deadline,
         actions = actions.mapIndexed { index, title ->
             NotificationAction(id = index.toLong(), title = title)
         },
-        actionRequired = actionRequired,
         analysisStatus = analysisStatus
     )
 }
@@ -36,10 +34,8 @@ fun Notification.toEntity(createdAt: java.time.LocalDateTime = receivedAt): Noti
         isImportant = isImportant,
         type = type,
         createdAt = createdAt,
-        remindAt = remindAt,
-        isReminded = isReminded,
+        deadline = deadline,
         summary = summary,
-        actionRequired = actionRequired,
         analysisStatus = analysisStatus,
         actions = actions.map { it.title }
     )

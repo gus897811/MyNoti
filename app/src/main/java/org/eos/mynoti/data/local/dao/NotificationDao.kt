@@ -75,25 +75,6 @@ interface NotificationDao {
     )
     suspend fun updateImportance(id: Long, isImportant: Boolean)
 
-    @Query(
-        """
-        UPDATE notification
-        SET remind_at = :remindAt,
-            is_reminded = 0
-        WHERE notification_id = :id
-        """
-    )
-    suspend fun setReminder(id: Long, remindAt: LocalDateTime)
-
-    @Query(
-        """
-        UPDATE notification
-        SET is_reminded = 1
-        WHERE notification_id = :id
-        """
-    )
-    suspend fun markAsReminded(id: Long)
-
     @Query("DELETE FROM notification WHERE notification_id = :id")
     suspend fun deleteById(id: Long)
 
@@ -134,9 +115,7 @@ interface NotificationDao {
         SET summary = :summary,
             is_important = :isImportant,
             type = :type,
-            action_required = :actionRequired,
-            remind_at = :remindAt,
-            is_reminded = :isReminded,
+            deadline = :deadline,
             actions_json = :actionsJson,
             analysis_status = :status
         WHERE notification_id = :id
@@ -147,9 +126,7 @@ interface NotificationDao {
         summary: String,
         isImportant: Boolean,
         type: NotificationType,
-        actionRequired: Boolean,
-        remindAt: LocalDateTime?,
-        isReminded: Boolean,
+        deadline: LocalDateTime?,
         actionsJson: String,
         status: AnalysisStatus
     )

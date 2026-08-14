@@ -26,8 +26,8 @@
     <string name="original_notification">Original Notification</string>
     <string name="label_type">Type</string>
     <string name="label_received">Received</string>
+    <string name="label_deadline">Deadline</string>
     <string name="actions_title">AI가 발견한 해야 할 일</string>
-    <string name="remind_later">나중에 다시 알림</string>
     <string name="importance">중요</string>
     <string name="no_summary">아직 생성된 요약이 없습니다.</string>
     <string name="analysis_pending">AI 분석 대기 중</string>

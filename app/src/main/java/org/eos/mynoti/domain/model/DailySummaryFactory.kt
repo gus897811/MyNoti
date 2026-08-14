@@ -1,14 +1,23 @@
 package org.eos.mynoti.domain.model
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 object DailySummaryFactory {
+    private val deadlineFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
     fun create(
         notifications: List<Notification>,
-        settings: AppSettings
+        settings: AppSettings,
+        now: LocalDateTime = LocalDateTime.now()
     ): DailySummary {
         val visible = notifications.applyAppSettings(settings)
         val important = visible.filter { it.isEffectivelyImportant(settings.highlightKeywords) }
         val assignments = visible.filter { it.type == NotificationType.ASSIGNMENT }
-        val upcoming = visible.filter { it.remindAt != null && !it.isReminded }
+        val upcoming = visible.filter { notification ->
+            val deadline = notification.deadline
+            deadline != null && !deadline.isBefore(now)
+        }
 
         val urgentItems = buildUrgentItems(visible)
         val mostUrgent = urgentItems.firstOrNull()
@@ -27,15 +36,17 @@ object DailySummaryFactory {
         return notifications
             .filter { it.actions.isNotEmpty() || it.isImportant }
             .sortedWith(
-                compareBy<Notification> { it.remindAt == null }
-                    .thenBy { it.remindAt }
+                compareBy<Notification> { it.deadline == null }
+                    .thenBy { it.deadline }
                     .thenByDescending { it.isImportant }
             )
             .take(3)
             .map { notification ->
                 SummaryTask(
                     title = notification.actions.firstOrNull()?.title ?: notification.title,
-                    dueLabel = notification.summary ?: notification.displaySummary(),
+                    dueLabel = notification.deadline?.format(deadlineFormatter)
+                        ?: notification.summary
+                        ?: notification.displaySummary(),
                     notificationId = notification.id
                 )
             }

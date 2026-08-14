@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import org.eos.mynoti.domain.model.AnalysisStatus
 import org.eos.mynoti.domain.model.Notification
 import org.eos.mynoti.domain.model.NotificationAnalysis
-import java.time.LocalDateTime
 
 interface NotificationRepository {
 
@@ -29,8 +28,6 @@ interface NotificationRepository {
     suspend fun deleteNotification(id: Long)
 
     suspend fun setImportant(id: Long, isImportant: Boolean)
-
-    suspend fun setReminder(id: Long, remindAt: LocalDateTime)
 
     suspend fun getPendingAnalysis(limit: Int = 20): List<Notification>
 

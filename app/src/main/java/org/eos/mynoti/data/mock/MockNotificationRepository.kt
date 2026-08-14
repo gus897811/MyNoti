@@ -78,14 +78,6 @@ class MockNotificationRepository(
         }
     }
 
-    override suspend fun setReminder(id: Long, remindAt: LocalDateTime) {
-        notifications.update { current ->
-            current.map {
-                if (it.id == id) it.copy(remindAt = remindAt, isReminded = false) else it
-            }
-        }
-    }
-
     override suspend fun getPendingAnalysis(limit: Int): List<Notification> {
         return notifications.value
             .filter {
@@ -124,9 +116,7 @@ class MockNotificationRepository(
                         summary = analysis.summary,
                         isImportant = analysis.isImportant,
                         type = analysis.type,
-                        actionRequired = analysis.actionRequired,
-                        remindAt = analysis.deadline ?: notification.remindAt,
-                        isReminded = if (analysis.deadline != null) false else notification.isReminded,
+                        deadline = analysis.deadline ?: notification.deadline,
                         actions = analysis.actions.mapIndexed { index, title ->
                             org.eos.mynoti.domain.model.NotificationAction(
                                 id = index.toLong(),

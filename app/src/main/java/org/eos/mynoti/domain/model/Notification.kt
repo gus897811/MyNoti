@@ -12,10 +12,8 @@ data class Notification(
     val receivedAt: LocalDateTime,
     val isImportant: Boolean,
     val type: NotificationType,
-    val remindAt: LocalDateTime?,
-    val isReminded: Boolean,
+    val deadline: LocalDateTime? = null,
     val actions: List<NotificationAction> = emptyList(),
-    val actionRequired: Boolean = false,
     val analysisStatus: AnalysisStatus = AnalysisStatus.PENDING
 ) {
     val isAnalysisPending: Boolean

@@ -102,8 +102,6 @@ class MyNotiNotificationListener : NotificationListenerService() {
                     receivedAt = receivedAt,
                     isImportant = false,
                     type = initialType(sbn.packageName),
-                    remindAt = null,
-                    isReminded = false,
                     analysisStatus = AnalysisStatus.PENDING
                 )
             )

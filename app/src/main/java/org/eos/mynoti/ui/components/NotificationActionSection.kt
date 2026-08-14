@@ -1,6 +1,5 @@
 package org.eos.mynoti.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +29,6 @@ import org.eos.mynoti.ui.theme.MyNotiTheme
 @Composable
 fun NotificationActionSection(
     actions: List<NotificationAction>,
-    onRemindLater: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (actions.isEmpty()) return
@@ -75,14 +72,6 @@ fun NotificationActionSection(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
-            OutlinedButton(
-                onClick = onRemindLater,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MyNotiCardShape
-            ) {
-                Text(text = stringResource(R.string.remind_later))
-            }
         }
     }
 }
@@ -95,7 +84,6 @@ private fun NotificationActionSectionPreview() {
             actions = listOf(
                 NotificationAction(id = 1, title = "운영체제 과제 2 제출")
             ),
-            onRemindLater = {},
             modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
         )
     }

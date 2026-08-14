@@ -23,7 +23,6 @@ class NotificationIngest(
                 id = 0,
                 summary = null,
                 analysisStatus = AnalysisStatus.PENDING,
-                actionRequired = false,
                 actions = emptyList()
             )
         )
@@ -47,8 +46,6 @@ class NotificationIngest(
                 receivedAt = now,
                 isImportant = false,
                 type = NotificationType.ETC,
-                remindAt = null,
-                isReminded = false,
                 analysisStatus = AnalysisStatus.PENDING
             )
         }

@@ -181,6 +181,13 @@ private fun NotificationDetailContent(
                 label = stringResource(R.string.label_received),
                 value = notification.receivedAt.toReceivedTimestamp()
             )
+            notification.deadline?.let { deadline ->
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
+                InfoRow(
+                    label = stringResource(R.string.label_deadline),
+                    value = deadline.toReceivedTimestamp()
+                )
+            }
         }
         Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
 
@@ -194,10 +201,7 @@ private fun NotificationDetailContent(
 
         if (notification.actions.isNotEmpty()) {
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
-            NotificationActionSection(
-                actions = notification.actions,
-                onRemindLater = {}
-            )
+            NotificationActionSection(actions = notification.actions)
         }
         Spacer(modifier = Modifier.height(MyNotiDimens.spaceXxl))
     }

@@ -11,7 +11,6 @@ import org.eos.mynoti.data.repository.NotificationRepository
 import org.eos.mynoti.domain.model.AnalysisStatus
 import org.eos.mynoti.domain.model.Notification
 import org.eos.mynoti.domain.model.NotificationAnalysis
-import java.time.LocalDateTime
 
 class RoomNotificationRepository(
     private val notificationDao: NotificationDao
@@ -65,10 +64,6 @@ class RoomNotificationRepository(
         notificationDao.updateImportance(id, isImportant)
     }
 
-    override suspend fun setReminder(id: Long, remindAt: LocalDateTime) {
-        notificationDao.setReminder(id, remindAt)
-    }
-
     override suspend fun getPendingAnalysis(limit: Int): List<Notification> {
         return notificationDao.getPendingAnalysis(limit).map { it.toDomain() }
     }
@@ -83,15 +78,12 @@ class RoomNotificationRepository(
 
     override suspend fun applyAnalysis(analysis: NotificationAnalysis) {
         val existing = notificationDao.getById(analysis.localId) ?: return
-        val remindAt = analysis.deadline ?: existing.remindAt
         notificationDao.applyAnalysis(
             id = analysis.localId,
             summary = analysis.summary,
             isImportant = analysis.isImportant,
             type = analysis.type,
-            actionRequired = analysis.actionRequired,
-            remindAt = remindAt,
-            isReminded = if (analysis.deadline != null) false else existing.isReminded,
+            deadline = analysis.deadline ?: existing.deadline,
             actionsJson = actionsConverter.fromList(analysis.actions),
             status = AnalysisStatus.COMPLETED
         )
