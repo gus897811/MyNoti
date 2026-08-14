@@ -21,5 +21,6 @@ data class NotificationAnalysis(
 
 data class BatchAnalysisResult(
     val results: List<NotificationAnalysis>,
-    val failedIds: List<Long>
+    val failedIds: List<Long>,
+    val filteredIds: List<Long> = emptyList()
 )

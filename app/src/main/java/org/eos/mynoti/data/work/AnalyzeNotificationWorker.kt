@@ -111,13 +111,23 @@ class AnalyzeNotificationWorker(
             )
         }
         val batch = llmRepository.analyzeBatch(items)
+        applyBatchResult(notificationRepository, batch)
+        return batch
+    }
+
+    private suspend fun applyBatchResult(
+        notificationRepository: NotificationRepository,
+        batch: BatchAnalysisResult
+    ) {
         batch.results.forEach { analysis ->
             notificationRepository.applyAnalysis(analysis)
         }
         batch.failedIds.forEach { id ->
             notificationRepository.markAnalysisStatus(id, AnalysisStatus.FAILED)
         }
-        return batch
+        batch.filteredIds.forEach { id ->
+            notificationRepository.deleteNotification(id)
+        }
     }
 
     private suspend fun resetInProgressToPending(

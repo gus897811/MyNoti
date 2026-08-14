@@ -8,5 +8,6 @@ data class AnalyzeNotificationResponse(
     val actionRequired: Boolean,
     val deadline: String?,
     val actions: List<String> = emptyList(),
-    val isFallback: Boolean = false
+    val isFallback: Boolean = false,
+    val isFiltered: Boolean = false
 )

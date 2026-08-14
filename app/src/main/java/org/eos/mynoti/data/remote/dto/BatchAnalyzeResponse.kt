@@ -17,7 +17,12 @@ data class BatchFailedItemDto(
     val reason: String
 )
 
+data class BatchFilteredItemDto(
+    val localId: Long
+)
+
 data class BatchAnalyzeResponse(
-    val results: List<BatchResultItemDto> = emptyList(),
-    val failed: List<BatchFailedItemDto> = emptyList()
+    val results: List<BatchResultItemDto>? = emptyList(),
+    val failed: List<BatchFailedItemDto>? = emptyList(),
+    val filtered: List<BatchFilteredItemDto>? = emptyList()
 )

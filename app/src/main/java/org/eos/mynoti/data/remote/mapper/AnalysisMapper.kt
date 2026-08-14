@@ -68,6 +68,11 @@ fun AnalyzeNotificationResponse.toAnalysis(localId: Long): NotificationAnalysis 
     )
 }
 
+fun AnalyzeNotificationResponse.toAnalysisOrNull(localId: Long): NotificationAnalysis? {
+    if (isFiltered) return null
+    return toAnalysis(localId)
+}
+
 fun BatchResultItemDto.toAnalysis(): NotificationAnalysis {
     return NotificationAnalysis(
         localId = localId,
@@ -83,9 +88,14 @@ fun BatchResultItemDto.toAnalysis(): NotificationAnalysis {
 }
 
 fun BatchAnalyzeResponse.toDomain(): BatchAnalysisResult {
+    val filteredIds = filtered.orEmpty().map { it.localId }
+    val filteredSet = filteredIds.toSet()
     return BatchAnalysisResult(
-        results = results.map { it.toAnalysis() },
-        failedIds = failed.map { it.localId }
+        results = results.orEmpty()
+            .map { it.toAnalysis() }
+            .filter { it.localId !in filteredSet },
+        failedIds = failed.orEmpty().map { it.localId }.filter { it !in filteredSet },
+        filteredIds = filteredIds
     )
 }
 

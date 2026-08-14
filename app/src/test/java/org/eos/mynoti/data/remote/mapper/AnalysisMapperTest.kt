@@ -88,4 +88,109 @@ class AnalysisMapperTest {
         val request = notification.toAnalyzeRequest()
         assertEquals("수아", request.title)
     }
+
+    @Test
+    fun toAnalysisOrNull_returnsNullWhenFiltered() {
+        val response = org.eos.mynoti.data.remote.dto.AnalyzeNotificationResponse(
+            title = "",
+            summary = "",
+            isImportant = false,
+            type = "ETC",
+            actionRequired = false,
+            deadline = null,
+            actions = emptyList(),
+            isFiltered = true
+        )
+        assertNull(response.toAnalysisOrNull(localId = 1))
+    }
+
+    @Test
+    fun toAnalysisOrNull_mapsWhenIsFilteredOmitted() {
+        val response = org.eos.mynoti.data.remote.dto.AnalyzeNotificationResponse(
+            title = "운영체제 과제 2 제출",
+            summary = "요약",
+            isImportant = true,
+            type = "ASSIGNMENT",
+            actionRequired = true,
+            deadline = null,
+            actions = emptyList()
+        )
+        val analysis = response.toAnalysisOrNull(localId = 7)
+        assertEquals("운영체제 과제 2 제출", analysis?.title)
+        assertEquals(7L, analysis?.localId)
+        assertEquals(NotificationType.ASSIGNMENT, analysis?.type)
+    }
+
+    @Test
+    fun toDomain_mapsFilteredFailedAndResults() {
+        val response = org.eos.mynoti.data.remote.dto.BatchAnalyzeResponse(
+            results = listOf(
+                org.eos.mynoti.data.remote.dto.BatchResultItemDto(
+                    localId = 101,
+                    title = "과제",
+                    summary = "요약",
+                    isImportant = true,
+                    type = "ASSIGNMENT",
+                    actionRequired = true,
+                    deadline = null
+                )
+            ),
+            failed = listOf(
+                org.eos.mynoti.data.remote.dto.BatchFailedItemDto(
+                    localId = 103,
+                    reason = "timeout"
+                )
+            ),
+            filtered = listOf(
+                org.eos.mynoti.data.remote.dto.BatchFilteredItemDto(localId = 102)
+            )
+        )
+        val domain = response.toDomain()
+        assertEquals(listOf(101L), domain.results.map { it.localId })
+        assertEquals(listOf(103L), domain.failedIds)
+        assertEquals(listOf(102L), domain.filteredIds)
+    }
+
+    @Test
+    fun toDomain_prefersFilteredWhenLocalIdOverlapsResults() {
+        val response = org.eos.mynoti.data.remote.dto.BatchAnalyzeResponse(
+            results = listOf(
+                org.eos.mynoti.data.remote.dto.BatchResultItemDto(
+                    localId = 102,
+                    title = "",
+                    summary = "",
+                    isImportant = false,
+                    type = "ETC",
+                    actionRequired = false,
+                    deadline = null
+                )
+            ),
+            failed = listOf(
+                org.eos.mynoti.data.remote.dto.BatchFailedItemDto(
+                    localId = 102,
+                    reason = "filtered"
+                )
+            ),
+            filtered = listOf(
+                org.eos.mynoti.data.remote.dto.BatchFilteredItemDto(localId = 102)
+            )
+        )
+        val domain = response.toDomain()
+        assertEquals(emptyList<Long>(), domain.results.map { it.localId })
+        assertEquals(emptyList<Long>(), domain.failedIds)
+        assertEquals(listOf(102L), domain.filteredIds)
+    }
+
+    @Test
+    fun toDomain_treatsMissingFilteredAsEmpty() {
+        val response = org.eos.mynoti.data.remote.dto.BatchAnalyzeResponse(
+            results = emptyList(),
+            failed = emptyList(),
+            filtered = null
+        )
+        val domain = response.toDomain()
+        assertEquals(emptyList<Long>(), domain.filteredIds)
+        assertEquals(emptyList<Long>(), domain.results.map { it.localId })
+        assertEquals(emptyList<Long>(), domain.failedIds)
+    }
 }

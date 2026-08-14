@@ -4,6 +4,52 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+fun loadDotEnv(file: File): Map<String, String> {
+    if (!file.exists()) return emptyMap()
+    return file.readLines()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+        .associate { line ->
+            val separator = line.indexOf('=')
+            val key = line.substring(0, separator).trim()
+            var value = line.substring(separator + 1).trim()
+            if (value.length >= 2 &&
+                ((value.startsWith("\"") && value.endsWith("\"")) ||
+                    (value.startsWith("'") && value.endsWith("'")))
+            ) {
+                value = value.substring(1, value.length - 1)
+            }
+            key to value
+        }
+}
+
+fun String.toBuildConfigString(): String {
+    return "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+}
+
+val dotenv = linkedMapOf<String, String>().apply {
+    listOf(
+        rootProject.file("backend/.env"),
+        rootProject.file(".env")
+    ).filter { it.exists() }.forEach { putAll(loadDotEnv(it)) }
+}
+
+fun requiredEnv(name: String): String {
+    return System.getenv(name)
+        ?: dotenv[name]?.takeIf { it.isNotBlank() }
+        ?: error(
+            "$name 가 없습니다. 프로젝트 루트 .env에 $name 를 넣거나 " +
+                "환경 변수 $name 를 설정하세요. (.env.example 참고)"
+        )
+}
+
+fun normalizeBaseUrl(url: String): String {
+    return if (url.endsWith("/")) url else "$url/"
+}
+
+val apiKey = requiredEnv("API_KEY")
+val apiBaseUrl = normalizeBaseUrl(requiredEnv("API_BASE_URL"))
+
 android {
     namespace = "org.eos.mynoti"
     compileSdk {
@@ -21,9 +67,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // README: uvicorn --port 8000. 에뮬레이터는 host loopback 대신 10.0.2.2 사용.
-        buildConfigField("String", "API_BASE_URL", "\"http://100.112.76.46:8000/\"")
-        buildConfigField("String", "API_KEY", "\"dev-api-key-change-me\"")
+        buildConfigField("String", "API_BASE_URL", apiBaseUrl.toBuildConfigString())
+        buildConfigField("String", "API_KEY", apiKey.toBuildConfigString())
     }
 
     buildTypes {
