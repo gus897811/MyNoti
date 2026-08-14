@@ -7,6 +7,7 @@ data class Notification(
     val appName: String,
     val appPackageName: String,
     val title: String,
+    val originalTitle: String = title,
     val content: String,
     val summary: String?,
     val receivedAt: LocalDateTime,

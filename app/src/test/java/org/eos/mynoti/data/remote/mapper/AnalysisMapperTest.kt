@@ -51,5 +51,41 @@ class AnalysisMapperTest {
         val analysis = response.toAnalysis(localId = 1)
         assertEquals(NotificationType.ETC, analysis.type)
         assertNull(analysis.deadline)
+        assertNull(analysis.title)
+    }
+
+    @Test
+    fun toAnalysis_mapsAiTitle() {
+        val response = org.eos.mynoti.data.remote.dto.AnalyzeNotificationResponse(
+            title = "운영체제 과제 2 제출",
+            summary = "요약",
+            isImportant = true,
+            type = "ASSIGNMENT",
+            actionRequired = true,
+            deadline = null,
+            actions = emptyList()
+        )
+        val analysis = response.toAnalysis(localId = 7)
+        assertEquals("운영체제 과제 2 제출", analysis.title)
+        assertEquals(7L, analysis.localId)
+    }
+
+    @Test
+    fun toAnalyzeRequest_sendsOriginalTitleNotAiTitle() {
+        val notification = Notification(
+            id = 101,
+            appName = "KakaoTalk",
+            appPackageName = AppPackages.KAKAOTALK,
+            title = "수아와의 점심 약속",
+            originalTitle = "수아",
+            content = "내일 점심 어때?",
+            summary = "수아와 내일 점심 약속을 잡았습니다.",
+            receivedAt = LocalDateTime.of(2026, 8, 13, 10, 30),
+            isImportant = false,
+            type = NotificationType.COMMUNICATION
+        )
+
+        val request = notification.toAnalyzeRequest()
+        assertEquals("수아", request.title)
     }
 }

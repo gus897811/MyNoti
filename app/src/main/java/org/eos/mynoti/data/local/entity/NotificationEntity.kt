@@ -22,6 +22,9 @@ data class NotificationEntity(
     @ColumnInfo(name = "title")
     val title: String?,
 
+    @ColumnInfo(name = "original_title")
+    val originalTitle: String? = null,
+
     @ColumnInfo(name = "content")
     val content: String?,
 

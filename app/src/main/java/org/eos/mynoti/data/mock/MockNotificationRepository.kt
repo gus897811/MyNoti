@@ -88,6 +88,13 @@ class MockNotificationRepository(
             .take(limit)
     }
 
+    override suspend fun getByAnalysisStatus(status: AnalysisStatus, limit: Int): List<Notification> {
+        return notifications.value
+            .filter { it.analysisStatus == status }
+            .sortedBy { it.receivedAt }
+            .take(limit)
+    }
+
     override suspend fun markAnalysisStatus(id: Long, status: AnalysisStatus) {
         notifications.update { current ->
             current.map { if (it.id == id) it.copy(analysisStatus = status) else it }
@@ -113,6 +120,7 @@ class MockNotificationRepository(
                     notification
                 } else {
                     notification.copy(
+                        title = analysis.title?.takeIf { it.isNotBlank() } ?: notification.title,
                         summary = analysis.summary,
                         isImportant = analysis.isImportant,
                         type = analysis.type,

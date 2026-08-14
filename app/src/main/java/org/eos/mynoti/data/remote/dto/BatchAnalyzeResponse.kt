@@ -2,6 +2,7 @@ package org.eos.mynoti.data.remote.dto
 
 data class BatchResultItemDto(
     val localId: Long,
+    val title: String? = null,
     val summary: String,
     val isImportant: Boolean,
     val type: String,

@@ -68,6 +68,10 @@ class RoomNotificationRepository(
         return notificationDao.getPendingAnalysis(limit).map { it.toDomain() }
     }
 
+    override suspend fun getByAnalysisStatus(status: AnalysisStatus, limit: Int): List<Notification> {
+        return notificationDao.getByAnalysisStatus(status, limit).map { it.toDomain() }
+    }
+
     override suspend fun markAnalysisStatus(id: Long, status: AnalysisStatus) {
         notificationDao.updateAnalysisStatus(id, status)
     }
@@ -80,6 +84,7 @@ class RoomNotificationRepository(
         val existing = notificationDao.getById(analysis.localId) ?: return
         notificationDao.applyAnalysis(
             id = analysis.localId,
+            title = analysis.title?.takeIf { it.isNotBlank() } ?: existing.title,
             summary = analysis.summary,
             isImportant = analysis.isImportant,
             type = analysis.type,

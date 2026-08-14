@@ -31,6 +31,8 @@ interface NotificationRepository {
 
     suspend fun getPendingAnalysis(limit: Int = 20): List<Notification>
 
+    suspend fun getByAnalysisStatus(status: AnalysisStatus, limit: Int): List<Notification>
+
     suspend fun markAnalysisStatus(id: Long, status: AnalysisStatus)
 
     suspend fun resetStuckAnalysis()

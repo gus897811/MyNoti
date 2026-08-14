@@ -9,6 +9,7 @@ import java.time.LocalDateTime
  */
 data class NotificationAnalysis(
     val localId: Long,
+    val title: String?,
     val summary: String,
     val isImportant: Boolean,
     val type: NotificationType,

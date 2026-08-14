@@ -93,6 +93,16 @@ interface NotificationDao {
 
     @Query(
         """
+        SELECT * FROM notification
+        WHERE analysis_status = :status
+        ORDER BY received_at ASC
+        LIMIT :limit
+        """
+    )
+    suspend fun getByAnalysisStatus(status: AnalysisStatus, limit: Int): List<NotificationEntity>
+
+    @Query(
+        """
         UPDATE notification
         SET analysis_status = :status
         WHERE notification_id = :id
@@ -112,7 +122,8 @@ interface NotificationDao {
     @Query(
         """
         UPDATE notification
-        SET summary = :summary,
+        SET title = :title,
+            summary = :summary,
             is_important = :isImportant,
             type = :type,
             deadline = :deadline,
@@ -123,6 +134,7 @@ interface NotificationDao {
     )
     suspend fun applyAnalysis(
         id: Long,
+        title: String?,
         summary: String,
         isImportant: Boolean,
         type: NotificationType,

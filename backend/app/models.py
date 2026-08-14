@@ -28,6 +28,7 @@ class AnalyzeRequest(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     summary: str
+    title: str
     isImportant: bool
     type: NotificationType
     actionRequired: bool
@@ -56,6 +57,7 @@ class BatchAnalyzeRequest(BaseModel):
 class BatchResultItem(BaseModel):
     localId: int
     summary: str
+    title: str
     isImportant: bool
     type: NotificationType
     actionRequired: bool

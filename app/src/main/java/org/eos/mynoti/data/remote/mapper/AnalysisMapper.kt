@@ -33,7 +33,7 @@ fun Notification.toAnalyzeRequest(): AnalyzeNotificationRequest {
     return AnalyzeNotificationRequest(
         appName = appName,
         packageName = appPackageName,
-        title = title.ifBlank { null },
+        title = originalTitle.ifBlank { title }.ifBlank { null },
         content = content.ifBlank { null },
         receivedAt = receivedAt.toIsoOffsetDateTime()
     )
@@ -44,7 +44,7 @@ fun Notification.toBatchItem(): BatchNotificationItemDto {
         localId = id,
         appName = appName,
         packageName = appPackageName,
-        title = title.ifBlank { null },
+        title = originalTitle.ifBlank { title }.ifBlank { null },
         content = content.ifBlank { null },
         receivedAt = receivedAt.toIsoOffsetDateTime()
     )
@@ -57,6 +57,7 @@ fun List<Notification>.toBatchRequest(): BatchAnalyzeRequest {
 fun AnalyzeNotificationResponse.toAnalysis(localId: Long): NotificationAnalysis {
     return NotificationAnalysis(
         localId = localId,
+        title = title,
         summary = summary,
         isImportant = isImportant,
         type = type.toNotificationType(),
@@ -70,6 +71,7 @@ fun AnalyzeNotificationResponse.toAnalysis(localId: Long): NotificationAnalysis 
 fun BatchResultItemDto.toAnalysis(): NotificationAnalysis {
     return NotificationAnalysis(
         localId = localId,
+        title = title,
         summary = summary,
         isImportant = isImportant,
         type = type.toNotificationType(),

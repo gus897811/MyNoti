@@ -42,6 +42,7 @@ curl -X POST http://localhost:8000/api/v1/notifications/analyze \
 
 ```json
 {
+  "title": "운영체제 과제 2 제출",
   "summary": "운영체제 과제 2를 8월 14일 23:59까지 제출해야 합니다.",
   "isImportant": true,
   "type": "ASSIGNMENT",

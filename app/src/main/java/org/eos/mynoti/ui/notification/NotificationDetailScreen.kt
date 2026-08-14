@@ -321,6 +321,14 @@ private fun NotificationDetailContent(
         Spacer(modifier = Modifier.height(MyNotiDimens.spaceMd))
 
         DetailSection(title = stringResource(R.string.original_notification)) {
+            if (notification.originalTitle.isNotBlank()) {
+                Text(
+                    text = notification.originalTitle,
+                    style = MyNotiTextStyles.notificationTitle,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
+            }
             Text(
                 text = notification.content,
                 style = MyNotiTextStyles.notificationSummary,

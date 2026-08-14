@@ -20,6 +20,7 @@ STRUCTURE_SCHEMA = {
         "type": "object",
         "properties": {
             "summary": {"type": "string"},
+            "title": {"type": "string"},
             "isImportant": {"type": "boolean"},
             "type": {
                 "type": "string",
@@ -31,6 +32,7 @@ STRUCTURE_SCHEMA = {
         },
         "required": [
             "summary",
+            "title",
             "isImportant",
             "type",
             "actionRequired",
@@ -55,6 +57,7 @@ def fallback_result(title: Optional[str], content: Optional[str]) -> dict:
     combined = f"{title or ''} {content or ''}".strip()
     return {
         "summary": combined[:50] if combined else "새 알림이 도착했습니다.",
+        "title": (title or "").strip() or "새 알림",
         "isImportant": False,
         "type": "ETC",
         "actionRequired": False,
