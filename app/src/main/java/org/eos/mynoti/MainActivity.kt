@@ -27,11 +27,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -73,6 +75,7 @@ private fun NotificationScreen() {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val notifications by NotificationRepository.notifications.collectAsState()
+    var selectedFilter by remember { mutableStateOf(NotiFilter.ALL) }
     var listenerEnabled by remember {
         mutableStateOf(isNotificationListenerEnabled(context))
     }
@@ -152,13 +155,40 @@ private fun NotificationScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = selectedFilter == NotiFilter.ALL,
+                    onClick = { selectedFilter = NotiFilter.ALL },
+                    label = { Text("전체") },
+                )
+                FilterChip(
+                    selected = selectedFilter == NotiFilter.KAKAOTALK,
+                    onClick = { selectedFilter = NotiFilter.KAKAOTALK },
+                    label = { Text("카카오톡") },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            val visibleNotifications = when (selectedFilter) {
+                NotiFilter.ALL -> notifications
+                NotiFilter.KAKAOTALK -> notifications.filter { it.isKakaoTalk }
+            }
+            val kakaoCount = notifications.count { it.isKakaoTalk }
+
             Text(
                 text = if (listenerEnabled) {
-                    "수신한 알림 ${notifications.size}개"
+                    "수신한 알림 ${visibleNotifications.size}개 · 카카오톡 ${kakaoCount}개"
                 } else {
-                    "알림 접근 권한을 허용하면 여기에 알림이 표시됩니다."
+                    "알림 접근 권한을 허용하면 카카오톡을 포함한 알림이 표시됩니다."
                 },
                 style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = context.getString(R.string.kakao_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -168,7 +198,7 @@ private fun NotificationScreen() {
                 contentPadding = PaddingValues(bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(notifications, key = { it.key }) { item ->
+                items(visibleNotifications, key = { it.key }) { item ->
                     NotificationItem(item)
                 }
             }
@@ -214,13 +244,21 @@ private fun NotificationItem(item: CapturedNotification) {
     val timeText = remember(item.postedAtMillis) {
         SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(item.postedAtMillis))
     }
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = if (item.isKakaoTalk) {
+            CardDefaults.cardColors(containerColor = KakaoYellow.copy(alpha = 0.35f))
+        } else {
+            CardDefaults.cardColors()
+        },
+    ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = item.packageName,
+                    text = item.appLabel,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (item.isKakaoTalk) KakaoBrown else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -246,6 +284,11 @@ private fun NotificationItem(item: CapturedNotification) {
         }
     }
 }
+
+private enum class NotiFilter { ALL, KAKAOTALK }
+
+private val KakaoYellow = Color(0xFFFAE100)
+private val KakaoBrown = Color(0xFF3C1E1E)
 
 private fun isNotificationListenerEnabled(context: Context): Boolean {
     return NotificationManagerCompat.getEnabledListenerPackages(context)

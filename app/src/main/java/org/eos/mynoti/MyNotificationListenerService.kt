@@ -1,6 +1,6 @@
 package org.eos.mynoti
 
-import android.app.Notification
+import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 
@@ -9,31 +9,29 @@ class MyNotificationListenerService : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected()
         activeNotifications.orEmpty().forEach { statusBarNotification ->
-            NotificationRepository.add(statusBarNotification.toCaptured())
+            capture(statusBarNotification)
         }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
-        NotificationRepository.add(sbn.toCaptured())
+        capture(sbn)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         NotificationRepository.markRemoved(sbn.key)
     }
 
-    private fun StatusBarNotification.toCaptured(): CapturedNotification {
-        val extras = notification.extras
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
-            ?: ""
-        return CapturedNotification(
-            key = key,
-            packageName = packageName,
-            title = title.ifBlank { "(제목 없음)" },
-            text = text,
-            postedAtMillis = postTime,
-        )
+    private fun capture(sbn: StatusBarNotification) {
+        NotificationRepository.addAll(NotificationParser.parse(sbn, labelFor(sbn.packageName)))
+    }
+
+    private fun labelFor(packageName: String): String {
+        if (packageName == NotificationParser.KAKAOTALK_PACKAGE) return "카카오톡"
+        if (packageName == this.packageName) return "MyNoti"
+        return runCatching {
+            packageManager.getApplicationLabel(
+                packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA),
+            ).toString()
+        }.getOrDefault(packageName)
     }
 }

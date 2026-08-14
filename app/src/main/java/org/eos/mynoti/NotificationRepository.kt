@@ -9,16 +9,27 @@ object NotificationRepository {
     private val _notifications = MutableStateFlow<List<CapturedNotification>>(emptyList())
     val notifications: StateFlow<List<CapturedNotification>> = _notifications.asStateFlow()
 
-    fun add(notification: CapturedNotification) {
+    fun addAll(items: List<CapturedNotification>) {
+        if (items.isEmpty()) return
         _notifications.update { current ->
-            listOf(notification) + current.filter { it.key != notification.key }
+            var result = current
+            items.forEach { item ->
+                result = if (item.key == item.notificationKey) {
+                    listOf(item) + result.filter { it.key != item.key }
+                } else if (result.none { it.key == item.key }) {
+                    listOf(item) + result
+                } else {
+                    result
+                }
+            }
+            result
         }
     }
 
-    fun markRemoved(key: String) {
+    fun markRemoved(notificationKey: String) {
         _notifications.update { current ->
             current.map { item ->
-                if (item.key == key) item.copy(isRemoved = true) else item
+                if (item.notificationKey == notificationKey) item.copy(isRemoved = true) else item
             }
         }
     }
