@@ -67,7 +67,7 @@ class AnalyzeNotificationWorker(
                     BATCH_LIMIT
                 )
                 if (failed.isEmpty()) {
-                    return Result.success()
+                    return finishIfIdle(notificationRepository)
                 }
                 submitBatch(notificationRepository, llmRepository, failed)
                 val stillPending = notificationRepository.getByAnalysisStatus(
@@ -81,7 +81,7 @@ class AnalyzeNotificationWorker(
                     AnalysisStatus.FAILED,
                     1
                 ).isNotEmpty()
-                return if (stillFailed) Result.retry() else Result.success()
+                return if (stillFailed) Result.retry() else finishIfIdle(notificationRepository)
             }
         } catch (error: HttpException) {
             resetInProgressToPending(notificationRepository)
@@ -128,6 +128,16 @@ class AnalyzeNotificationWorker(
         batch.filteredIds.forEach { id ->
             notificationRepository.deleteNotification(id)
         }
+    }
+
+    private suspend fun finishIfIdle(
+        notificationRepository: NotificationRepository
+    ): Result {
+        val arrivedWhileFinishing = notificationRepository.getByAnalysisStatus(
+            AnalysisStatus.PENDING,
+            1
+        ).isNotEmpty()
+        return if (arrivedWhileFinishing) Result.retry() else Result.success()
     }
 
     private suspend fun resetInProgressToPending(
@@ -177,6 +187,8 @@ class AnalyzeNotificationWorker(
 }
 
 object AnalysisScheduler {
+    private const val DEBOUNCE_SECONDS = 3L
+
     private val networkConstraint = Constraints.Builder()
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
@@ -184,13 +196,14 @@ object AnalysisScheduler {
     fun enqueue(context: Context) {
         val request = OneTimeWorkRequestBuilder<AnalyzeNotificationWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .setInitialDelay(DEBOUNCE_SECONDS, TimeUnit.SECONDS)
             .setConstraints(networkConstraint)
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
         WorkManager.getInstance(context.applicationContext)
             .enqueueUniqueWork(
                 AnalyzeNotificationWorker.UNIQUE_WORK_NAME,
-                ExistingWorkPolicy.REPLACE,
+                ExistingWorkPolicy.KEEP,
                 request
             )
     }

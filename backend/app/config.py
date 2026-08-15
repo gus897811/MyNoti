@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     # 잡담/불필요 알림 1차 필터링 전용 모델. 단순 boolean 판단만 하므로
     # LLM_MODEL보다 저렴하고 가벼운 모델을 지정해 토큰 비용을 줄입니다.
     LLM_FILTER_MODEL: str = "gpt-5.6-nano"
-    LLM_TIMEOUT_SEC: float = 5.0
+    LLM_TIMEOUT_SEC: float = 30.0
 
     class Config:
         env_file = ".env"
