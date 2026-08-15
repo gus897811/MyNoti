@@ -151,20 +151,35 @@ DEFAULT_ADDON = """
 등록되지 않은 앱의 알림입니다. 위 공통 기준(1~6)만으로 신중하게 판단하세요.
 """
 
-# packageName / appName에 포함된 키워드로 앱별 프롬프트를 분기합니다.
+# 안드로이드 AppPackages와 동일한 기본 5앱. 부분 문자열보다 패키지 exact가 우선한다.
+# com.kakaobank.channel 은 "kakao"에도 걸리므로 exact가 없으면 카톡 프롬프트로 오분류된다.
+_PACKAGE_EXACT_MAP = {
+    "com.instructure.candroid.xinics2.production": LEARNINGX_ADDON,
+    "com.shinhan.heyoung": HEYYOUNG_ADDON,
+    "com.kakao.talk": KAKAOTALK_ADDON,
+    "com.shcard.smartpay": FINANCIAL_ADDON,
+    "com.kakaobank.channel": FINANCIAL_ADDON,
+}
+
+# 사용자가 추가한 앱용 키워드 폴백. 더 구체적인 토큰을 앞에 둔다.
 _PACKAGE_KEYWORD_MAP = [
     (("learningx", "lms", "xinics", "instructure"), LEARNINGX_ADDON),
     (("heyyoung", "heyoung", "hyu"), HEYYOUNG_ADDON),
-    (("kakao",), KAKAOTALK_ADDON),
+    (("kakaobank", "kakaopay"), FINANCIAL_ADDON),
     (("instagram",), INSTAGRAM_ADDON),
     (
         ("bank", "card", "toss", "pay", "kbstar", "shinhan", "woori", "nhbank"),
         FINANCIAL_ADDON,
     ),
+    (("kakao",), KAKAOTALK_ADDON),
 ]
 
 
 def get_system_prompt(package_name: str, app_name: str = "") -> str:
+    exact = _PACKAGE_EXACT_MAP.get(package_name.strip())
+    if exact is not None:
+        return BASE_SYSTEM_PROMPT + exact
+
     lowered = f"{package_name} {app_name}".lower()
     for keywords, addon in _PACKAGE_KEYWORD_MAP:
         if any(k in lowered for k in keywords):
