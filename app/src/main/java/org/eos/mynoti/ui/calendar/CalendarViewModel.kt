@@ -34,11 +34,8 @@ data class CalendarUiState(
     val selectedEvents: List<CalendarEvent>
         get() = eventsByDate[selectedDate].orEmpty().sortedBy { it.eventAt }
 
-    fun typesOn(date: LocalDate): List<NotificationType> {
-        return eventsByDate[date].orEmpty()
-            .map { it.type }
-            .distinct()
-            .take(3)
+    fun markersOn(date: LocalDate): List<CalendarDayMarker> {
+        return dayMarkers(eventsByDate[date].orEmpty())
     }
 }
 

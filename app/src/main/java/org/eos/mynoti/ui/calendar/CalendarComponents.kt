@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,8 +25,8 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -44,11 +47,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.eos.mynoti.R
 import org.eos.mynoti.domain.model.CalendarEvent
-import org.eos.mynoti.domain.model.NotificationType
 import org.eos.mynoti.ui.components.AppIcon
 import org.eos.mynoti.ui.components.ImportanceBadge
 import org.eos.mynoti.ui.components.TypeBadge
 import org.eos.mynoti.ui.components.accentColor
+import org.eos.mynoti.ui.theme.ImportantAccent
+import org.eos.mynoti.ui.theme.ImportantCardBackground
+import org.eos.mynoti.ui.theme.ImportantCardBackgroundDark
+import org.eos.mynoti.ui.theme.MyNotiCardShape
 import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
 import org.eos.mynoti.ui.util.toReceivedTimeLabel
@@ -60,7 +66,6 @@ import java.util.Locale
 private val weekdayLabels = listOf("일", "월", "화", "수", "목", "금", "토")
 private val monthTitleFormatter = DateTimeFormatter.ofPattern("yyyy년 M월", Locale.KOREAN)
 private val selectedDateFormatter = DateTimeFormatter.ofPattern("M월 d일", Locale.KOREAN)
-private val CalendarEventCardShape = RoundedCornerShape(16.dp)
 
 @Composable
 fun CalendarMonthHeader(
@@ -169,7 +174,7 @@ fun CalendarMonthGrid(
     month: YearMonth,
     selectedDate: LocalDate,
     today: LocalDate,
-    typesByDate: (LocalDate) -> List<NotificationType>,
+    markersByDate: (LocalDate) -> List<CalendarDayMarker>,
     onSelectDate: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -182,7 +187,7 @@ fun CalendarMonthGrid(
                         date = date,
                         selected = date == selectedDate,
                         isToday = date == today,
-                        types = date?.let(typesByDate).orEmpty(),
+                        markers = date?.let(markersByDate).orEmpty(),
                         onClick = { date?.let(onSelectDate) },
                         modifier = Modifier.weight(1f)
                     )
@@ -200,7 +205,7 @@ private fun CalendarDayCell(
     date: LocalDate?,
     selected: Boolean,
     isToday: Boolean,
-    types: List<NotificationType>,
+    markers: List<CalendarDayMarker>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -263,14 +268,22 @@ private fun CalendarDayCell(
         Row(
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.height(6.dp)
+            modifier = Modifier.height(8.dp)
         ) {
-            types.take(3).forEach { type ->
+            markers.take(3).forEach { marker ->
+                val color = marker.type.accentColor()
                 Box(
                     modifier = Modifier
-                        .size(5.dp)
-                        .clip(CircleShape)
-                        .background(type.accentColor())
+                        .size(7.dp)
+                        .then(
+                            if (marker.isImportant) {
+                                Modifier
+                                    .clip(CircleShape)
+                                    .background(color)
+                            } else {
+                                Modifier.border(1.dp, color, CircleShape)
+                            }
+                        )
                 )
             }
         }
@@ -296,87 +309,112 @@ fun CalendarEventCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ElevatedCard(
+    val isImportant = event.isImportant
+    val containerColor = if (isImportant) {
+        if (MaterialTheme.colorScheme.background.luminance() < 0.5f) {
+            ImportantCardBackgroundDark
+        } else {
+            ImportantCardBackground
+        }
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+
+    Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = CalendarEventCardShape,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+        shape = MyNotiCardShape,
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
-            modifier = Modifier.padding(MyNotiDimens.cardPadding),
-            verticalAlignment = Alignment.Top
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
         ) {
-            AppIcon(
-                appPackageName = event.appPackageName,
-                size = MyNotiDimens.appIcon,
-                contentDescription = event.appName
-            )
-            Spacer(modifier = Modifier.width(MyNotiDimens.spaceMd))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = event.appName,
-                    style = MyNotiTextStyles.caption,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+            if (isImportant) {
+                Box(
+                    modifier = Modifier
+                        .width(MyNotiDimens.importantAccent)
+                        .fillMaxHeight()
+                        .background(ImportantAccent)
                 )
-                Text(
-                    text = event.title,
-                    style = MyNotiTextStyles.notificationTitle,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
-                Text(
-                    text = event.eventAt.toReceivedTimeLabel(),
-                    style = MyNotiTextStyles.notificationSummary,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                event.location?.let { location ->
-                    Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Outlined.Place,
-                            contentDescription = stringResource(R.string.cd_calendar_location),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(MyNotiDimens.spaceMd)
-                        )
-                        Spacer(modifier = Modifier.width(MyNotiDimens.spaceXs))
-                        Text(
-                            text = location,
-                            style = MyNotiTextStyles.notificationSummary,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(MyNotiDimens.chipSpacing),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TypeBadge(type = event.type)
-                    if (event.isImportant) {
-                        ImportanceBadge()
-                    }
-                }
             }
-            event.receivedAt?.let { receivedAt ->
-                Spacer(modifier = Modifier.width(MyNotiDimens.spaceSm))
-                Text(
-                    text = stringResource(
-                        R.string.calendar_received,
-                        receivedAt.toReceivedTimeLabel()
-                    ),
-                    style = MyNotiTextStyles.caption,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(MyNotiDimens.cardPadding),
+                verticalAlignment = Alignment.Top
+            ) {
+                AppIcon(
+                    appPackageName = event.appPackageName,
+                    size = MyNotiDimens.appIcon,
+                    contentDescription = event.appName
                 )
+                Spacer(modifier = Modifier.width(MyNotiDimens.spaceMd))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = event.appName,
+                        style = MyNotiTextStyles.caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = event.title,
+                        style = MyNotiTextStyles.notificationTitle,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+                    Text(
+                        text = event.eventAt.toReceivedTimeLabel(),
+                        style = MyNotiTextStyles.notificationSummary,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    event.location?.let { location ->
+                        Spacer(modifier = Modifier.height(MyNotiDimens.spaceXs))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Place,
+                                contentDescription = stringResource(R.string.cd_calendar_location),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(MyNotiDimens.spaceMd)
+                            )
+                            Spacer(modifier = Modifier.width(MyNotiDimens.spaceXs))
+                            Text(
+                                text = location,
+                                style = MyNotiTextStyles.notificationSummary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(MyNotiDimens.chipSpacing),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TypeBadge(type = event.type)
+                        if (isImportant) {
+                            ImportanceBadge()
+                        }
+                    }
+                }
+                event.receivedAt?.let { receivedAt ->
+                    Spacer(modifier = Modifier.width(MyNotiDimens.spaceSm))
+                    Text(
+                        text = stringResource(
+                            R.string.calendar_received,
+                            receivedAt.toReceivedTimeLabel()
+                        ),
+                        style = MyNotiTextStyles.caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
+                    )
+                }
             }
         }
     }

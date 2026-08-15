@@ -1,8 +1,25 @@
 package org.eos.mynoti.ui.calendar
 
+import org.eos.mynoti.domain.model.CalendarEvent
+import org.eos.mynoti.domain.model.NotificationType
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
+
+data class CalendarDayMarker(
+    val type: NotificationType,
+    val isImportant: Boolean
+)
+
+fun dayMarkers(events: List<CalendarEvent>, limit: Int = 3): List<CalendarDayMarker> {
+    return events
+        .sortedWith(
+            compareByDescending<CalendarEvent> { it.isImportant }
+                .thenBy { it.eventAt }
+        )
+        .take(limit)
+        .map { CalendarDayMarker(type = it.type, isImportant = it.isImportant) }
+}
 
 fun YearMonth.firstDayOffset(firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY): Int {
     val first = atDay(1).dayOfWeek

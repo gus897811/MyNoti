@@ -127,7 +127,7 @@ fun CalendarScreen(
                         month = uiState.currentMonth,
                         selectedDate = uiState.selectedDate,
                         today = uiState.today,
-                        typesByDate = uiState::typesOn,
+                        markersByDate = uiState::markersOn,
                         onSelectDate = onSelectDate
                     )
                 }
