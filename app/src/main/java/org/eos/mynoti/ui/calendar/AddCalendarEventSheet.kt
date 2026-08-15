@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -35,12 +36,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.eos.mynoti.R
+import org.eos.mynoti.domain.model.AppPackages
+import org.eos.mynoti.domain.model.CalendarEvent
 import org.eos.mynoti.domain.model.NotificationType
 import org.eos.mynoti.ui.components.FilterChip
 import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
+import org.eos.mynoti.ui.theme.MyNotiTheme
 import org.eos.mynoti.ui.util.toReceivedTimeLabel
 import java.time.Instant
 import java.time.LocalDate
@@ -60,17 +65,26 @@ fun AddCalendarEventSheet(
         eventAt: LocalDateTime,
         type: NotificationType,
         isImportant: Boolean
-    ) -> Unit
+    ) -> Unit,
+    editingEvent: CalendarEvent? = null,
+    onDelete: (() -> Unit)? = null
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var title by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(selectedDate) }
-    var time by remember { mutableStateOf(LocalTime.of(15, 0)) }
-    var type by remember { mutableStateOf(NotificationType.ETC) }
-    var isImportant by remember { mutableStateOf(false) }
+    val isEditing = editingEvent != null
+    val editKey = editingEvent?.manualEventId
+    var title by remember(editKey) { mutableStateOf(editingEvent?.title.orEmpty()) }
+    var location by remember(editKey) { mutableStateOf(editingEvent?.location.orEmpty()) }
+    var date by remember(editKey) {
+        mutableStateOf(editingEvent?.eventAt?.toLocalDate() ?: selectedDate)
+    }
+    var time by remember(editKey) {
+        mutableStateOf(editingEvent?.eventAt?.toLocalTime() ?: LocalTime.of(15, 0))
+    }
+    var type by remember(editKey) { mutableStateOf(editingEvent?.type ?: NotificationType.ETC) }
+    var isImportant by remember(editKey) { mutableStateOf(editingEvent?.isImportant ?: false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -89,7 +103,9 @@ fun AddCalendarEventSheet(
                 )
         ) {
             Text(
-                text = stringResource(R.string.calendar_add_event),
+                text = stringResource(
+                    if (isEditing) R.string.calendar_edit_event else R.string.calendar_add_event
+                ),
                 style = MyNotiTextStyles.sectionTitle,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -188,7 +204,23 @@ fun AddCalendarEventSheet(
                 enabled = title.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = stringResource(R.string.add))
+                Text(
+                    text = stringResource(
+                        if (isEditing) R.string.reminder_save else R.string.add
+                    )
+                )
+            }
+            if (onDelete != null) {
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(MyNotiDimens.spaceLg))
         }
@@ -279,6 +311,55 @@ fun AddCalendarEventSheet(
                     )
                 )
             }
+        )
+    }
+
+    if (showDeleteConfirm && onDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(text = stringResource(R.string.calendar_delete_event_title)) },
+            text = { Text(text = stringResource(R.string.calendar_delete_event_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        onDelete()
+                    }
+                ) {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Edit calendar event sheet")
+@Composable
+private fun AddCalendarEventSheetEditPreview() {
+    MyNotiTheme {
+        AddCalendarEventSheet(
+            selectedDate = LocalDate.of(2026, 8, 10),
+            editingEvent = CalendarEvent(
+                manualEventId = 1,
+                title = "캡스톤 팀플 회의",
+                location = "중앙도서관",
+                eventAt = LocalDateTime.of(2026, 8, 10, 15, 0),
+                appName = "직접 추가",
+                appPackageName = AppPackages.MANUAL,
+                type = NotificationType.COMMUNICATION,
+                isImportant = true
+            ),
+            onDismiss = {},
+            onSave = { _, _, _, _, _ -> },
+            onDelete = {}
         )
     }
 }

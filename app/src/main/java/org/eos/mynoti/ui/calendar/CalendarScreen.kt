@@ -56,7 +56,9 @@ fun CalendarRoute(
         onEventClick = { event ->
             event.notificationId?.let(onNotificationClick)
         },
-        onAddEvent = viewModel::addEvent
+        onAddEvent = viewModel::addEvent,
+        onUpdateEvent = viewModel::updateEvent,
+        onDeleteEvent = viewModel::deleteEvent
     )
 }
 
@@ -70,9 +72,12 @@ fun CalendarScreen(
     onToday: () -> Unit,
     onEventClick: (CalendarEvent) -> Unit,
     onAddEvent: (String, String?, LocalDateTime, NotificationType, Boolean) -> Unit,
+    onUpdateEvent: (Long, String, String?, LocalDateTime, NotificationType, Boolean) -> Unit,
+    onDeleteEvent: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showAddSheet by remember { mutableStateOf(false) }
+    var editingEvent by remember { mutableStateOf<CalendarEvent?>(null) }
     var showMonthPicker by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -82,7 +87,12 @@ fun CalendarScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        CalendarScreenHeader(onAddEvent = { showAddSheet = true })
+        CalendarScreenHeader(
+            onAddEvent = {
+                editingEvent = null
+                showAddSheet = true
+            }
+        )
         CalendarMonthHeader(
             month = uiState.currentMonth,
             onPrevious = {
@@ -145,7 +155,16 @@ fun CalendarScreen(
                 ) { event ->
                     CalendarEventCard(
                         event = event,
-                        onClick = { onEventClick(event) },
+                        onClick = {
+                            val manualId = event.manualEventId
+                            when {
+                                event.notificationId != null -> onEventClick(event)
+                                manualId != null && manualId != 0L -> {
+                                    showAddSheet = false
+                                    editingEvent = event
+                                }
+                            }
+                        },
                         modifier = Modifier.padding(
                             horizontal = MyNotiDimens.screenHorizontal,
                             vertical = MyNotiDimens.itemSpacing / 2
@@ -168,13 +187,31 @@ fun CalendarScreen(
         )
     }
 
-    if (showAddSheet) {
+    if (showAddSheet || editingEvent != null) {
+        val currentEditing = editingEvent
         AddCalendarEventSheet(
             selectedDate = uiState.selectedDate,
-            onDismiss = { showAddSheet = false },
-            onSave = { title, location, eventAt, type, isImportant ->
-                onAddEvent(title, location, eventAt, type, isImportant)
+            editingEvent = currentEditing,
+            onDismiss = {
                 showAddSheet = false
+                editingEvent = null
+            },
+            onSave = { title, location, eventAt, type, isImportant ->
+                val manualId = currentEditing?.manualEventId
+                if (currentEditing != null && manualId != null && manualId != 0L) {
+                    onUpdateEvent(manualId, title, location, eventAt, type, isImportant)
+                } else {
+                    onAddEvent(title, location, eventAt, type, isImportant)
+                }
+                showAddSheet = false
+                editingEvent = null
+            },
+            onDelete = currentEditing?.manualEventId?.takeIf { it != 0L }?.let { eventId ->
+                {
+                    onDeleteEvent(eventId)
+                    showAddSheet = false
+                    editingEvent = null
+                }
             }
         )
     }
@@ -207,7 +244,9 @@ private fun CalendarScreenPreview() {
             onSelectMonth = {},
             onToday = {},
             onEventClick = {},
-            onAddEvent = { _, _, _, _, _ -> }
+            onAddEvent = { _, _, _, _, _ -> },
+            onUpdateEvent = { _, _, _, _, _, _ -> },
+            onDeleteEvent = {}
         )
     }
 }
@@ -231,7 +270,9 @@ private fun CalendarScreenEmptyPreview() {
             onSelectMonth = {},
             onToday = {},
             onEventClick = {},
-            onAddEvent = { _, _, _, _, _ -> }
+            onAddEvent = { _, _, _, _, _ -> },
+            onUpdateEvent = { _, _, _, _, _, _ -> },
+            onDeleteEvent = {}
         )
     }
 }
@@ -270,6 +311,16 @@ private fun previewCalendarEvents(): List<CalendarEvent> {
             appPackageName = AppPackages.LEARNING_X,
             type = NotificationType.ASSIGNMENT,
             isImportant = true
+        ),
+        CalendarEvent(
+            manualEventId = 1,
+            title = "스터디 모임",
+            location = "카페",
+            eventAt = LocalDateTime.of(2026, 8, 10, 19, 0),
+            appName = "직접 추가",
+            appPackageName = AppPackages.MANUAL,
+            type = NotificationType.ETC,
+            isImportant = false
         )
     )
 }

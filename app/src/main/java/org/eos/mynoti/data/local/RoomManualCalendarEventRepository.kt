@@ -36,4 +36,32 @@ class RoomManualCalendarEventRepository(
             )
         )
     }
+
+    override suspend fun update(
+        eventId: Long,
+        title: String,
+        location: String?,
+        eventAt: LocalDateTime,
+        type: NotificationType,
+        isImportant: Boolean
+    ) {
+        if (eventId <= 0L) return
+        val trimmed = title.trim()
+        if (trimmed.isEmpty()) return
+        val existing = dao.getById(eventId) ?: return
+        dao.update(
+            existing.copy(
+                title = trimmed,
+                location = location?.trim()?.takeIf { it.isNotBlank() },
+                eventAt = eventAt,
+                type = type,
+                isImportant = isImportant
+            )
+        )
+    }
+
+    override suspend fun delete(eventId: Long) {
+        if (eventId <= 0L) return
+        dao.deleteById(eventId)
+    }
 }

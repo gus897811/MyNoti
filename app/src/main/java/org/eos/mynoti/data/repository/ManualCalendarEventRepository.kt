@@ -16,4 +16,15 @@ interface ManualCalendarEventRepository {
         type: NotificationType,
         isImportant: Boolean
     ): Long
+
+    suspend fun update(
+        eventId: Long,
+        title: String,
+        location: String?,
+        eventAt: LocalDateTime,
+        type: NotificationType,
+        isImportant: Boolean
+    )
+
+    suspend fun delete(eventId: Long)
 }

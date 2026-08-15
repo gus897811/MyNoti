@@ -135,6 +135,36 @@ class CalendarViewModel(
         }
     }
 
+    fun updateEvent(
+        eventId: Long,
+        title: String,
+        location: String?,
+        eventAt: LocalDateTime,
+        type: NotificationType,
+        isImportant: Boolean
+    ) {
+        val trimmed = title.trim()
+        if (eventId <= 0L || trimmed.isEmpty()) return
+        viewModelScope.launch {
+            manualCalendarEventRepository.update(
+                eventId = eventId,
+                title = trimmed,
+                location = location,
+                eventAt = eventAt,
+                type = type,
+                isImportant = isImportant
+            )
+            selectDate(eventAt.toLocalDate())
+        }
+    }
+
+    fun deleteEvent(eventId: Long) {
+        if (eventId <= 0L) return
+        viewModelScope.launch {
+            manualCalendarEventRepository.delete(eventId)
+        }
+    }
+
     private fun shiftMonth(delta: Long) {
         currentMonth.update { month ->
             val next = month.plusMonths(delta)
