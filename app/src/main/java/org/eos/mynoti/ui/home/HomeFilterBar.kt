@@ -10,30 +10,39 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import org.eos.mynoti.R
 import org.eos.mynoti.domain.model.NotificationFilter
 import org.eos.mynoti.domain.model.NotificationType
@@ -57,6 +66,7 @@ fun HomeFilterBar(
     onAddAppFilterClick: () -> Unit,
     onToggleType: (NotificationType) -> Unit,
     onToggleImportant: () -> Unit,
+    onQueryChange: (String) -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -112,6 +122,44 @@ fun HomeFilterBar(
             exit = fadeOut() + shrinkVertically()
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
+                val keyboardController = LocalSoftwareKeyboardController.current
+                OutlinedTextField(
+                    value = filter.query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = MyNotiDimens.screenHorizontal,
+                            end = MyNotiDimens.screenHorizontal,
+                            top = MyNotiDimens.spaceSm
+                        ),
+                    singleLine = true,
+                    placeholder = { Text(text = stringResource(R.string.filter_search_placeholder)) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = if (filter.query.isNotBlank()) {
+                        {
+                            IconButton(onClick = { onQueryChange("") }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Close,
+                                    contentDescription = stringResource(R.string.cd_clear_search)
+                                )
+                            }
+                        }
+                    } else {
+                        null
+                    },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = KeyboardActions(
+                        onSearch = { keyboardController?.hide() }
+                    )
+                )
+                Spacer(modifier = Modifier.height(MyNotiDimens.spaceSm))
+
                 FilterSection(title = stringResource(R.string.filter_status)) {
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),

@@ -26,6 +26,22 @@ fun LocalDateTime.toReceivedTimeLabel(): String {
     return format(formatter)
 }
 
+fun LocalDateTime.toNotificationCardTimeLabel(
+    today: LocalDate = LocalDate.now()
+): String {
+    val date = toLocalDate()
+    val time = toReceivedTimeLabel()
+    return when {
+        date == today -> time
+        date.year == today.year -> {
+            format(DateTimeFormatter.ofPattern("M월 d일 ", Locale.KOREAN)) + time
+        }
+        else -> {
+            format(DateTimeFormatter.ofPattern("yyyy년 M월 d일 ", Locale.KOREAN)) + time
+        }
+    }
+}
+
 fun LocalDateTime.toReceivedTimestamp(): String {
     return format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 }

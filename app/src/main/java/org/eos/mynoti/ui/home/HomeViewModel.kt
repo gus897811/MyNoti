@@ -129,6 +129,10 @@ class HomeViewModel(
         filter.value = NotificationFilter()
     }
 
+    fun onSearchQueryChange(query: String) {
+        filter.update { it.copy(query = query) }
+    }
+
     fun toggleFiltersExpanded() {
         filtersExpanded.update { !it }
     }

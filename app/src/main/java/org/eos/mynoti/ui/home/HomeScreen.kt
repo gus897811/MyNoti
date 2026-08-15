@@ -60,6 +60,7 @@ fun HomeRoute(
         onRemoveAppFilter = viewModel::removeAppFilter,
         onToggleType = viewModel::toggleType,
         onToggleImportant = viewModel::toggleImportant,
+        onQueryChange = viewModel::onSearchQueryChange,
         onClearFilters = viewModel::clearFilters,
         onToggleFiltersExpanded = viewModel::toggleFiltersExpanded,
         onNotificationClick = onNotificationClick,
@@ -75,6 +76,7 @@ fun HomeScreen(
     onRemoveAppFilter: (String) -> Unit,
     onToggleType: (NotificationType) -> Unit,
     onToggleImportant: () -> Unit,
+    onQueryChange: (String) -> Unit,
     onClearFilters: () -> Unit,
     onToggleFiltersExpanded: () -> Unit,
     onNotificationClick: (Long) -> Unit,
@@ -97,6 +99,7 @@ fun HomeScreen(
             onAddAppFilterClick = { showAppFilterSheet = true },
             onToggleType = onToggleType,
             onToggleImportant = onToggleImportant,
+            onQueryChange = onQueryChange,
             onClear = onClearFilters
         )
 
@@ -122,17 +125,25 @@ fun HomeScreen(
                     )
                 }
                 isEmpty -> {
+                    val emptyTitle: String
+                    val emptyDescription: String
+                    when {
+                        uiState.filter.query.isNotBlank() -> {
+                            emptyTitle = stringResource(R.string.empty_search_title)
+                            emptyDescription = stringResource(R.string.empty_search_description)
+                        }
+                        uiState.filter.isActive -> {
+                            emptyTitle = stringResource(R.string.empty_filter_title)
+                            emptyDescription = stringResource(R.string.empty_filter_description)
+                        }
+                        else -> {
+                            emptyTitle = stringResource(R.string.empty_title)
+                            emptyDescription = stringResource(R.string.empty_description)
+                        }
+                    }
                     EmptyState(
-                        title = if (uiState.filter.isActive) {
-                            stringResource(R.string.empty_filter_title)
-                        } else {
-                            stringResource(R.string.empty_title)
-                        },
-                        description = if (uiState.filter.isActive) {
-                            stringResource(R.string.empty_filter_description)
-                        } else {
-                            stringResource(R.string.empty_description)
-                        },
+                        title = emptyTitle,
+                        description = emptyDescription,
                         icon = Icons.Outlined.Notifications
                     )
                 }
@@ -198,6 +209,7 @@ private fun HomeScreenPreview() {
             onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
+            onQueryChange = {},
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},
@@ -229,6 +241,62 @@ private fun HomeScreenFilteredPreview() {
             onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
+            onQueryChange = {},
+            onClearFilters = {},
+            onToggleFiltersExpanded = {},
+            onNotificationClick = {},
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Home search")
+@Preview(showBackground = true, name = "Home search compact", widthDp = 320)
+@Composable
+private fun HomeScreenSearchPreview() {
+    val filter = NotificationFilter(query = "과제")
+    val notifications = MockNotificationData.create(LocalDateTime.of(2026, 8, 13, 18, 0))
+        .applyFilter(filter)
+    MyNotiTheme {
+        HomeScreen(
+            uiState = HomeUiState(
+                visibleNotifications = notifications,
+                filter = filter,
+                filtersExpanded = true,
+                isLoading = false
+            ),
+            onSelectAllApps = {},
+            onToggleApp = {},
+            onRemoveAppFilter = {},
+            onToggleType = {},
+            onToggleImportant = {},
+            onQueryChange = {},
+            onClearFilters = {},
+            onToggleFiltersExpanded = {},
+            onNotificationClick = {},
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Home search empty")
+@Composable
+private fun HomeScreenSearchEmptyPreview() {
+    val filter = NotificationFilter(query = "없는검색어XYZ")
+    MyNotiTheme {
+        HomeScreen(
+            uiState = HomeUiState(
+                visibleNotifications = emptyList(),
+                filter = filter,
+                filtersExpanded = true,
+                isLoading = false
+            ),
+            onSelectAllApps = {},
+            onToggleApp = {},
+            onRemoveAppFilter = {},
+            onToggleType = {},
+            onToggleImportant = {},
+            onQueryChange = {},
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},
@@ -251,6 +319,7 @@ private fun HomeScreenEmptyPreview() {
             onRemoveAppFilter = {},
             onToggleType = {},
             onToggleImportant = {},
+            onQueryChange = {},
             onClearFilters = {},
             onToggleFiltersExpanded = {},
             onNotificationClick = {},

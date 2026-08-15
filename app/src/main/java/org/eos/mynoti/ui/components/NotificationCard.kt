@@ -44,7 +44,7 @@ import org.eos.mynoti.ui.theme.MyNotiDimens
 import org.eos.mynoti.ui.theme.MyNotiTextStyles
 import org.eos.mynoti.ui.theme.MyNotiTheme
 import org.eos.mynoti.ui.util.previewText
-import org.eos.mynoti.ui.util.toReceivedTimeLabel
+import org.eos.mynoti.ui.util.toNotificationCardTimeLabel
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -53,9 +53,10 @@ fun NotificationCard(
     notification: Notification,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isImportant: Boolean = notification.isImportant
+    isImportant: Boolean = notification.isImportant,
+    today: LocalDate = LocalDate.now()
 ) {
-    val isToday = notification.receivedAt.toLocalDate() == LocalDate.now()
+    val isToday = notification.receivedAt.toLocalDate() == today
     val hasAiSummary = !notification.summary.isNullOrBlank()
     val containerColor = if (isImportant) {
         if (MaterialTheme.colorScheme.background.luminance() < 0.5f) {
@@ -115,9 +116,10 @@ fun NotificationCard(
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = notification.receivedAt.toReceivedTimeLabel(),
+                            text = notification.receivedAt.toNotificationCardTimeLabel(today),
                             style = MyNotiTextStyles.caption,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
                         )
                         if (isToday) {
                             Spacer(modifier = Modifier.width(MyNotiDimens.spaceSm))
@@ -171,6 +173,8 @@ fun NotificationCard(
     }
 }
 
+private val previewToday = LocalDate.of(2026, 8, 15)
+
 @Preview(showBackground = true, name = "Important card")
 @Preview(
     showBackground = true,
@@ -182,9 +186,10 @@ private fun NotificationCardImportantPreview() {
     MyNotiTheme {
         NotificationCard(
             notification = MockNotificationData.create(
-                LocalDateTime.of(2026, 8, 13, 10, 30)
+                LocalDateTime.of(2026, 8, 15, 10, 30)
             ).first { it.isImportant },
             onClick = {},
+            today = previewToday,
             modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
         )
     }
@@ -196,10 +201,66 @@ private fun NotificationCardRegularPreview() {
     MyNotiTheme {
         NotificationCard(
             notification = MockNotificationData.create(
-                LocalDateTime.of(2026, 8, 13, 10, 30)
+                LocalDateTime.of(2026, 8, 15, 10, 30)
             ).first { !it.isImportant },
             onClick = {},
+            today = previewToday,
             modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
         )
     }
+}
+
+@Preview(showBackground = true, name = "Card today time only")
+@Composable
+private fun NotificationCardTodayPreview() {
+    MyNotiTheme {
+        NotificationCard(
+            notification = previewCard(LocalDateTime.of(2026, 8, 15, 22, 30)),
+            onClick = {},
+            today = previewToday,
+            modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Card same year date")
+@Composable
+private fun NotificationCardSameYearPreview() {
+    MyNotiTheme {
+        NotificationCard(
+            notification = previewCard(LocalDateTime.of(2026, 8, 13, 22, 30)),
+            onClick = {},
+            today = previewToday,
+            modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Card other year")
+@Preview(showBackground = true, name = "Card other year compact", widthDp = 320)
+@Composable
+private fun NotificationCardOtherYearPreview() {
+    MyNotiTheme {
+        NotificationCard(
+            notification = previewCard(
+                receivedAt = LocalDateTime.of(2025, 12, 31, 9, 5),
+                appName = "LearningX Student Campus Portal"
+            ),
+            onClick = {},
+            today = previewToday,
+            modifier = Modifier.padding(MyNotiDimens.screenHorizontal)
+        )
+    }
+}
+
+private fun previewCard(
+    receivedAt: LocalDateTime,
+    appName: String? = null
+): Notification {
+    val base = MockNotificationData.create(LocalDateTime.of(2026, 8, 15, 10, 30))
+        .first { it.isImportant }
+    return base.copy(
+        appName = appName ?: base.appName,
+        receivedAt = receivedAt
+    )
 }

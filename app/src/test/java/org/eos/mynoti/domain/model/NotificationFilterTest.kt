@@ -123,11 +123,13 @@ class NotificationFilterTest {
     fun pruneSelectedAppsDropsPackagesNotInTargetList() {
         val filter = NotificationFilter(
             selectedApps = setOf(AppPackages.LEARNING_X, AppPackages.KAKAOTALK),
-            importantOnly = true
+            importantOnly = true,
+            query = "과제"
         )
         val pruned = filter.pruneSelectedApps(setOf(AppPackages.LEARNING_X))
         assertEquals(setOf(AppPackages.LEARNING_X), pruned.selectedApps)
         assertTrue(pruned.importantOnly)
+        assertEquals("과제", pruned.query)
     }
 
     @Test
@@ -178,5 +180,93 @@ class NotificationFilterTest {
         )
         assertTrue(notifications.any { it.isImportant })
         assertTrue(notifications.any { !it.isImportant })
+    }
+
+    @Test
+    fun emptyQueryShowsAll() {
+        val result = notifications.applyFilter(NotificationFilter(query = ""))
+        assertEquals(notifications.size, result.size)
+    }
+
+    @Test
+    fun titleOnlyQueryMatchesThatNotification() {
+        val result = notifications.applyFilter(NotificationFilter(query = "수아"))
+        assertEquals(1, result.size)
+        assertEquals("수아", result.single().title)
+    }
+
+    @Test
+    fun summaryOnlyQueryMatchesThatNotification() {
+        val result = notifications.applyFilter(NotificationFilter(query = "50만원"))
+        assertEquals(1, result.size)
+        assertEquals(AppPackages.KAKAOBANK, result.single().appPackageName)
+    }
+
+    @Test
+    fun queryIgnoresCase() {
+        val result = notifications.applyFilter(NotificationFilter(query = "data structures"))
+        assertTrue(result.isNotEmpty())
+        assertTrue(result.all { it.searchableText().contains("Data Structures") })
+    }
+
+    @Test
+    fun queryTrimMatchesUntrimmed() {
+        val trimmed = notifications.applyFilter(NotificationFilter(query = "과제"))
+        val padded = notifications.applyFilter(NotificationFilter(query = "  과제  "))
+        assertEquals(trimmed.map { it.id }, padded.map { it.id })
+        assertTrue(trimmed.isNotEmpty())
+    }
+
+    @Test
+    fun unmatchedQueryReturnsEmpty() {
+        val result = notifications.applyFilter(
+            NotificationFilter(query = "LearningX에없는문자열XYZ")
+        )
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun selectedAppsAndQueryAreAnd() {
+        val result = notifications.applyFilter(
+            NotificationFilter(
+                selectedApps = setOf(AppPackages.LEARNING_X),
+                query = "운영체제"
+            )
+        )
+        assertTrue(result.isNotEmpty())
+        assertTrue(
+            result.all {
+                it.appPackageName == AppPackages.LEARNING_X &&
+                    it.searchableText().contains("운영체제")
+            }
+        )
+    }
+
+    @Test
+    fun importantOnlyAndQueryAreAnd() {
+        val result = notifications.applyFilter(
+            NotificationFilter(importantOnly = true, query = "과제")
+        )
+        assertTrue(result.isNotEmpty())
+        assertTrue(result.all { it.isImportant })
+        assertTrue(result.all { it.searchableText().contains("과제") })
+    }
+
+    @Test
+    fun queryMakesFilterActive() {
+        assertTrue(NotificationFilter(query = "과제").isActive)
+    }
+
+    @Test
+    fun blankQueryIsNotActiveWithoutOtherFilters() {
+        assertTrue(!NotificationFilter(query = "   ").isActive)
+        assertTrue(!NotificationFilter().isActive)
+    }
+
+    @Test
+    fun defaultFilterHasNoQuery() {
+        assertTrue(NotificationFilter().query.isEmpty())
+        val cleared = notifications.applyFilter(NotificationFilter())
+        assertEquals(notifications.size, cleared.size)
     }
 }

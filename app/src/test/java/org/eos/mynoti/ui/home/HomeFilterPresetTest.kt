@@ -13,6 +13,7 @@ class HomeFilterPresetTest {
         assertTrue(filter.importantOnly)
         assertTrue(filter.selectedTypes.isEmpty())
         assertTrue(filter.selectedApps.isEmpty())
+        assertTrue(filter.query.isBlank())
         assertTrue(filter.isActive)
     }
 
@@ -22,6 +23,7 @@ class HomeFilterPresetTest {
         assertEquals(setOf(NotificationType.ASSIGNMENT), filter.selectedTypes)
         assertTrue(!filter.importantOnly)
         assertTrue(filter.selectedApps.isEmpty())
+        assertTrue(filter.query.isBlank())
         assertTrue(filter.isActive)
     }
 }
